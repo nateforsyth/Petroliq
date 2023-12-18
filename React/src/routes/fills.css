@@ -1,0 +1,21 @@
+.fillElement {
+    display: flex;
+    flex-direction: column;
+}
+
+.fillsElement {
+    display: flex;
+    flex-direction: row;
+}
+
+.fillElementNav {
+    /* border-right: solid 1px; */
+    padding-left: 0;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.fillElementContent {
+    flex-grow: 8;
+}
