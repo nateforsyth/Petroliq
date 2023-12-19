@@ -2,6 +2,8 @@ import { Link, Outlet } from "react-router-dom";
 import getFills from "../dataLayer/data"
 import IFill from "../interfaces/IFill";
 
+import FillForm from "../components/fillForm/fillForm";
+
 import './fills.css';
 
 export default function Fills() {
@@ -28,6 +30,7 @@ export default function Fills() {
                     }
                 </nav>
                 <Outlet />
+                <FillForm />
             </div>
         </div>
     )
