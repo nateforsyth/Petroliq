@@ -21,7 +21,9 @@ namespace Petroliq_API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+#if !DEBUG
         [Authorize("calculate")]
+#endif
         public PetroliqOverview Get()
         {
             return new PetroliqOverview("Nate");
@@ -38,7 +40,9 @@ namespace Petroliq_API.Controllers
         [HttpGet("{toSpend}/{specifiedDiscount}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+#if !DEBUG
         [Authorize("calculate")]
+#endif
         public async Task<IActionResult> Get(float toSpend, float specifiedDiscount)
         {
             await Task.Delay(TimeSpan.FromSeconds(10));

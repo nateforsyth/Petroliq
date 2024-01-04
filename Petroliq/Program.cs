@@ -16,12 +16,9 @@ namespace Petroliq
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
 
-            // configure Auth0
-
+            #region Configure Auth0
             var domain = $"{builder.Configuration["Auth0:Domain"]}";
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -44,16 +41,17 @@ namespace Petroliq
             });
 
             builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+            #endregion
 
-            // configure MongoDB
-
+            #region Configure MongoDB
             builder.Services.Configure<PetroliqDatabaseSettings>(
                 builder.Configuration.GetSection("PetroliqDatabase")
             );
             builder.Services.AddSingleton<UserSettingsService>();
             builder.Services.AddSingleton<UserService>();
+            #endregion
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            #region Configure Swagger/OpenAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -102,10 +100,10 @@ namespace Petroliq
                     }
                 });
 
-                // using System.Reflection;
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
+            #endregion
 
             builder.Services.AddControllers()
                 .AddJsonOptions(

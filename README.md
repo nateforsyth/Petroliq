@@ -27,11 +27,13 @@ Petroliq is an app that allows users to track their fuel usage, as well as accum
 
 ## Reference
 
+
 ### ASP.NET Core Web API
 
 [ASP.NET Core Web API tutorial](https://www.pragimtech.com/blog/mongodb-tutorial/asp-net-6-rest-api-tutorial/)
 
 [ASP.NET Core data annotations](https://levelup.gitconnected.com/20-important-data-annotations-in-asp-net-core-mvc-f0935dd91661)
+
 
 ### MongoDB
 
@@ -46,6 +48,12 @@ Petroliq is an app that allows users to track their fuel usage, as well as accum
 
 [MongoDB remote access and firewall settings](https://stackoverflow.com/questions/33632409/allow-mongodb-remote-access-for-specific-ip)
 
+
 ### Character encoding
 
 [Unicode converter](https://www.branah.com/unicode-converter)
+
+
+### Swagger/Open API
+
+[Learn more about Swagger/OpenAPI](https://aka.ms/aspnetcore/swashbuckle)
