@@ -5,6 +5,7 @@ using Petroliq_API.Model;
 
 namespace Petroliq_API.Services
 {
+#pragma warning disable CS1591
     public class UserService : ServiceHelper
     {
         private readonly IMongoCollection<User> _usersCollection;
@@ -55,4 +56,5 @@ namespace Petroliq_API.Services
         public async Task RemoveAsync(string id) =>
             await _usersCollection.DeleteOneAsync(x => x.Id == id);
     }
+#pragma warning restore CS1591
 }

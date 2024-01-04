@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Petroliq_API.Services
 {
+#pragma warning disable CS1591
     public class UserSettingsService : ServiceHelper
     {
         private readonly IMongoCollection<UserSettings> _userSettingsCollection;
@@ -55,4 +56,5 @@ namespace Petroliq_API.Services
         public async Task RemoveForUserAsync(string userId) =>
             await _userSettingsCollection.DeleteOneAsync(x => x.UserId == userId);
     }
+#pragma warning restore CS1591
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Model;
 using Petroliq_API.Services;
 
@@ -25,6 +26,7 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("read:users")]
         public async Task<List<User>> Get() => await _userService.GetAsync();
 
         /// <summary>
@@ -37,6 +39,7 @@ namespace Petroliq_API.Controllers
         [HttpGet("{id:length(24)}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("read:users")]
         public async Task<ActionResult<User>> Get(string id)
         {
             var user = await _userService.GetAsync(id);
@@ -59,6 +62,7 @@ namespace Petroliq_API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("write:users")]
         public async Task<IActionResult> Post(User newUser)
         {
             await _userService.CreateAsync(newUser);
@@ -77,6 +81,7 @@ namespace Petroliq_API.Controllers
         [HttpPut("{id:length(24)}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("write:users")]
         public async Task<IActionResult> Update(string id, User updatedUser)
         {
             var user = await _userService.GetAsync(id);
@@ -103,6 +108,7 @@ namespace Petroliq_API.Controllers
         [HttpDelete("{id:length(24)}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("write:users")]
         public async Task<IActionResult> Delete(string id)
         {
             var book = await _userService.GetAsync(id);

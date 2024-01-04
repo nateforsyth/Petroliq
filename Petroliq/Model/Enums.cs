@@ -1,5 +1,6 @@
 ﻿namespace Petroliq_API.Model
 {
+#pragma warning disable CS1591
     public class Enums
     {
         public enum CurrencyUnit
@@ -25,4 +26,5 @@
             Miles = 'm'
         }
     }
+#pragma warning restore CS1591
 }

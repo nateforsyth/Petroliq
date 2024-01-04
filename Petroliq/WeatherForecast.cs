@@ -1,5 +1,6 @@
 namespace Petroliq
 {
+#pragma warning disable CS1591
     public class WeatherForecast
     {
         public DateOnly Date { get; set; }
@@ -10,4 +11,5 @@ namespace Petroliq
 
         public string? Summary { get; set; }
     }
+#pragma warning restore CS1591
 }
