@@ -77,7 +77,7 @@ namespace Petroliq
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = @"JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below. Example: 'Bearer 12345abcdef'",
+                    Description = @"<p>JWT Authorization header using the Bearer scheme.</p><p>Enter 'Bearer' [space] and then your token in the text input below.</p><p>Example: '<b>Bearer</b> <i>12345abcdef</i>'</p>",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,

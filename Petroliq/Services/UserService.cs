@@ -52,8 +52,11 @@ namespace Petroliq_API.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task RemoveAsync(string id) =>
+        public async Task RemoveAsync(string id)
+        {
             await _usersCollection.DeleteOneAsync(x => x.Id == id);
+        }
+            
     }
 #pragma warning restore CS1591
 }

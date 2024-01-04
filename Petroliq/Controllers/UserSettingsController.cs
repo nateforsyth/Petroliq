@@ -53,24 +53,6 @@ namespace Petroliq_API.Controllers
         }
 
         /// <summary>
-        /// Create a User Settings object for a specific User
-        /// </summary>
-        /// <param name="newUserSettings"></param>
-        /// <returns>New User Settings object</returns>
-        /// <response code="201">Returns the newly created User Settings object</response>
-        /// <response code="400">Nothing is returned if the object is null</response>
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize("write:userSettings")]
-        public async Task<IActionResult> Post(UserSettings newUserSettings)
-        {
-            await _userSettingsService.CreateForUserAsync(newUserSettings);
-
-            return CreatedAtAction(nameof(Get), new { id = newUserSettings.Id }, newUserSettings);
-        }
-
-        /// <summary>
         /// Update an existing User Settings object for the specific User
         /// </summary>
         /// <param name="userIdStr"></param>
@@ -96,31 +78,6 @@ namespace Petroliq_API.Controllers
             await _userSettingsService.UpdateForUserAsync(userIdStr, updatedUserSettings);
 
             return Ok(updatedUserSettings);
-        }
-
-        /// <summary>
-        /// Delete an existing User Settings object for the specified User
-        /// </summary>
-        /// <param name="userIdStr"></param>
-        /// <returns>No Content</returns>
-        /// <response code="204">Returns nothing upon User Settings object deletion</response>
-        /// <response code="404">Returns 404 if a User Settings object couldn't be found for the User</response>
-        [HttpDelete("{userIdStr:length(24)}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize("write:userSettings")]
-        public async Task<IActionResult> Delete(string userIdStr)
-        {
-            var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);
-
-            if (userSettings is null)
-            {
-                return NotFound();
-            }
-
-            await _userSettingsService.RemoveForUserAsync(userIdStr);
-
-            return NoContent();
         }
     }
 }

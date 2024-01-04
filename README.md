@@ -18,6 +18,11 @@ Petroliq is an app that allows users to track their fuel usage, as well as accum
 7) app will allow the user to view graphs and reports of the usage and pricing trends.
     - reports will be printable
     - reports will be able to be exported to Google Drive Spreadsheet format
+	
+
+## Known TODO
+
+[Implement error handling](https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-8.0)
 
 
 ## Reference
@@ -40,3 +45,7 @@ Petroliq is an app that allows users to track their fuel usage, as well as accum
 [Connection Refused for MongoDB remote access](https://www.mongodb.com/community/forums/t/connection-refused-for-remote-access-of-mongodb-server/235790)
 
 [MongoDB remote access and firewall settings](https://stackoverflow.com/questions/33632409/allow-mongodb-remote-access-for-specific-ip)
+
+### Character encoding
+
+[Unicode converter](https://www.branah.com/unicode-converter)

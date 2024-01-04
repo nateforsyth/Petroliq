@@ -11,9 +11,10 @@ namespace Petroliq_API.Controllers
     [ApiController]
     [Route("api/[Controller]")]
     [Produces("application/json")]
-    public class UserController(UserService userService) : ControllerBase
+    public class UserController(UserService userService, UserSettingsService userSettingsService) : ControllerBase
     {
         private readonly UserService _userService = userService;
+        private readonly UserSettingsService _userSettingsService = userSettingsService;
 
         /// <summary>
         /// Get all User objects
@@ -53,9 +54,9 @@ namespace Petroliq_API.Controllers
         }
 
         /// <summary>
-        /// Create a new User
+        /// Create a new User and associated Settings
         /// </summary>
-        /// <param name="newUser"></param>
+        /// <param name="userAndSettings"></param>
         /// <returns>New User object</returns>
         /// <response code="201">Returns the newly created User object</response>
         /// <response code="400">Nothing is returned if the object is null</response>
@@ -63,11 +64,21 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize("write:users")]
-        public async Task<IActionResult> Post(User newUser)
+        public async Task<IActionResult> Post(UserAndSettings userAndSettings)
         {
-            await _userService.CreateAsync(newUser);
+            if (userAndSettings.User != null && userAndSettings.UserSettings != null)
+            {
+                // create a new User object
+                await _userService.CreateAsync(userAndSettings.User);
 
-            return CreatedAtAction(nameof(Get), new { id = newUser.Id }, newUser);
+                // add the Settings object for this User
+                userAndSettings.UserSettings.UserId = userAndSettings.User.Id;
+                await _userSettingsService.CreateForUserAsync(userAndSettings.UserSettings);
+
+                return CreatedAtAction(nameof(Get), new { id = userAndSettings.User.Id }, userAndSettings.User);
+            }
+
+            return BadRequest();            
         }
 
         /// <summary>
@@ -99,11 +110,11 @@ namespace Petroliq_API.Controllers
         }
 
         /// <summary>
-        /// Delete an existing User
+        /// Delete an existing User, including their Settings
         /// </summary>
         /// <param name="id"></param>
         /// <returns>No Content</returns>
-        /// <response code="204">Returns nothing upon User Settings object deletion</response>
+        /// <response code="204">Returns nothing upon User and Settings object deletion</response>
         /// <response code="404">Returns 404 if a User Settings object couldn't be found for the User</response>
         [HttpDelete("{id:length(24)}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -111,14 +122,27 @@ namespace Petroliq_API.Controllers
         [Authorize("write:users")]
         public async Task<IActionResult> Delete(string id)
         {
-            var book = await _userService.GetAsync(id);
+            var user = await _userService.GetAsync(id);
 
-            if (book is null)
+            if (user is not null && user.Id is not null)
+            {                
+                var userSettings = await _userSettingsService.GetForUserAsync(user.Id);
+
+                if (userSettings is null)
+                {
+                    return NotFound();
+                }
+
+                // attempt to delete this User's Settings object
+                await _userSettingsService.RemoveForUserAsync(id);
+
+                // attempt to delete this User
+                await _userService.RemoveAsync(id);
+            }
+            else
             {
                 return NotFound();
-            }
-
-            await _userService.RemoveAsync(id);
+            }            
 
             return NoContent();
         }
