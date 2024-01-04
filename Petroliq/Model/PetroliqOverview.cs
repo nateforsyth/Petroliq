@@ -1,9 +1,9 @@
 ﻿namespace Petroliq_API.Model
 {
+#pragma warning disable CS1591
     public class PetroliqOverview(string name)
     {
         public string Name { get; set; } = name;
-
 
         public class Fill
         {
@@ -13,7 +13,6 @@
             public float UnitPrice { get; set; }
             public float TotalPrice { get; set; }
         }
-
-        
     }
+#pragma warning restore CS1591
 }

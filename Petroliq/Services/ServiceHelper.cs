@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 
 namespace Petroliq_API.Services
 {
+#pragma warning disable CS1591
     public class ServiceHelper
     {
         private readonly IConfiguration _configuration;
@@ -16,4 +16,5 @@ namespace Petroliq_API.Services
             _mongoClient = new MongoClient(_connectionString);
         }
     }
+#pragma warning restore CS1591
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Petroliq.Controllers
 {
+#pragma warning disable CS1591
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -30,4 +31,5 @@ namespace Petroliq.Controllers
             .ToArray();
         }
     }
+#pragma warning restore CS1591
 }

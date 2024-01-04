@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Model;
 using Petroliq_API.Services;
 using System.Net;
@@ -25,6 +26,7 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("read:userSettings")]
         public async Task<List<UserSettings>> Get() => await _userSettingsService.GetAsync();
 
         /// <summary>
@@ -37,6 +39,7 @@ namespace Petroliq_API.Controllers
         [HttpGet("{userIdStr:length(24)}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("read:userSettings")]
         public async Task<ActionResult<UserSettings>> GetSettingsForUser(string userIdStr)
         {
             var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);
@@ -59,6 +62,7 @@ namespace Petroliq_API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("write:userSettings")]
         public async Task<IActionResult> Post(UserSettings newUserSettings)
         {
             await _userSettingsService.CreateForUserAsync(newUserSettings);
@@ -77,6 +81,7 @@ namespace Petroliq_API.Controllers
         [HttpPut("{userIdStr:length(24)}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("write:userSettings")]
         public async Task<IActionResult> Update(string userIdStr, UserSettings updatedUserSettings)
         {
             var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);
@@ -103,6 +108,7 @@ namespace Petroliq_API.Controllers
         [HttpDelete("{userIdStr:length(24)}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize("write:userSettings")]
         public async Task<IActionResult> Delete(string userIdStr)
         {
             var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);

@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Petroliq;
 using Petroliq_API.Model;
 
 namespace Petroliq_API.Controllers
@@ -21,6 +21,7 @@ namespace Petroliq_API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("calculate")]
         public PetroliqOverview Get()
         {
             return new PetroliqOverview("Nate");
@@ -37,6 +38,7 @@ namespace Petroliq_API.Controllers
         [HttpGet("{toSpend}/{specifiedDiscount}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize("calculate")]
         public async Task<IActionResult> Get(float toSpend, float specifiedDiscount)
         {
             await Task.Delay(TimeSpan.FromSeconds(10));
