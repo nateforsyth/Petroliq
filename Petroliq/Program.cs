@@ -66,7 +66,7 @@ namespace Petroliq
                     Contact = new OpenApiContact
                     {
                         Name = "Dreamsof.dev",
-                        Url = new Uri("https://dreamsof.dev/t")
+                        Url = new Uri("https://dreamsof.dev/")
                     },
                     License = new OpenApiLicense
                     {
