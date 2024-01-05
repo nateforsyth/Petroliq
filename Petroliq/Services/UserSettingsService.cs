@@ -26,10 +26,20 @@ namespace Petroliq_API.Services
         /// <summary>
         /// Get a User Settings object for a specific User
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="id"></param>
+        /// <param name="useUserId"></param>
         /// <returns></returns>
-        public async Task<UserSettings?> GetForUserAsync(string userId) =>
-            await _userSettingsCollection.Find(x => x.UserId == userId).FirstOrDefaultAsync();
+        public async Task<UserSettings?> GetForUserAsync(string id, bool useUserId)
+        {
+            if (useUserId)
+            {
+                return await _userSettingsCollection.Find(x => x.UserId == id).FirstOrDefaultAsync();
+            }
+            else
+            {
+                return await _userSettingsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+            }            
+        }
 
         /// <summary>
         /// Create a User Settings object for a specific User

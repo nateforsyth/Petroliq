@@ -1,17 +1,15 @@
-﻿namespace Petroliq_API.Model
+﻿namespace Petroliq_API.Application
 {
 #pragma warning disable CS1591
     public class Enums
     {
         public enum CurrencyUnit
         {
-            AUD = '$',
-            GBP = '£', // 0163
-            EUR = '€', // 0128
-            JPY = '¥',
-            PHP = '₱',
-            NZD = '$',
-            USD = '$',
+            Dollar = '$',
+            Pount = '£', // 0163
+            Euro = '€', // 0128
+            Yen = '¥',
+            Peso = '₱'
         }
 
         public enum CapacityUnit
@@ -22,7 +20,7 @@
 
         public enum DistanceUnit
         {
-            Kilometers = '㎞',
+            Kilometers = '㎞', // TODO find a better character for km as this one is rendering as ? in the console
             Miles = 'm'
         }
     }

@@ -22,10 +22,27 @@ Petroliq is an app that allows users to track their fuel usage, as well as accum
 
 ## Known TODO
 
-[Implement error handling](https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-8.0)
+- [Implement error handling](https://learn.microsoft.com/en-us/aspnet/core/web-api/handle-errors?view=aspnetcore-8.0)
+- Add Consumption Calculator
+    - Add Controller action for Consumption Calculator
+- Implement Fuel Discount Calculator
+	- Add Controller action for Fuel Discount Calculator
+- Implement Petroliq Algorithm for discount breakeven analysis
+    - Add Controller Actions for Petroliq Algorithm (TBC)
+- Add Vehicle class (base)
+	- Add derived vehicle classes; e.g. Motorcycle, Car, Truck, Van
+- Enumerations.
+	- Add Fuel type enumeration; Diesel, Petrol/Gasolene.
+	- Add Controller for retrieval and validation of all enums.
+- Add localisation support.
 
 
 ## Reference
+
+
+### Typescript
+
+[Const objects instead of enums (to support multiple values)](https://stackoverflow.com/questions/52200963/typescript-enum-with-multiple-string-values)
 
 
 ### ASP.NET Core Web API

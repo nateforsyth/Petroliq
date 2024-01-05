@@ -33,16 +33,17 @@ namespace Petroliq_API.Controllers
         /// Get Settings object for the specified User
         /// </summary>
         /// <param name="userIdStr"></param>
+        /// <param name="useUserId"></param>
         /// <returns>The Settings object for the specified User</returns>
         /// <response code="200">Returns the User Settings object</response>
         /// <response code="404">Nothing is returned if the object is null</response>
-        [HttpGet("{userIdStr:length(24)}")]
+        [HttpGet("{userIdStr:length(24)}/{useUserId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize("read:userSettings")]
-        public async Task<ActionResult<UserSettings>> GetSettingsForUser(string userIdStr)
+        public async Task<ActionResult<UserSettings>> GetSettingsForUser(string userIdStr, bool useUserId)
         {
-            var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);
+            var userSettings = await _userSettingsService.GetForUserAsync(userIdStr, useUserId);
 
             if (userSettings is null)
             {
@@ -55,18 +56,19 @@ namespace Petroliq_API.Controllers
         /// <summary>
         /// Update an existing User Settings object for the specific User
         /// </summary>
-        /// <param name="userIdStr"></param>
+        /// <param name="idStr"></param>
+        /// <param name="useUserId"></param>
         /// <param name="updatedUserSettings"></param>
         /// <returns>Updated User Settings object</returns>
         /// <response code="200">Returns the updated User Settings object</response>
         /// <response code="404">Returns 404 if a User Settings object couldn't be found for the User</response>
-        [HttpPut("{userIdStr:length(24)}")]
+        [HttpPut("{idStr:length(24)}/{useUserId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize("write:userSettings")]
-        public async Task<IActionResult> Update(string userIdStr, UserSettings updatedUserSettings)
+        public async Task<IActionResult> Update(string idStr, bool useUserId, UserSettings updatedUserSettings)
         {
-            var userSettings = await _userSettingsService.GetForUserAsync(userIdStr);
+            var userSettings = await _userSettingsService.GetForUserAsync(idStr, useUserId);
 
             if (userSettings is null)
             {
@@ -75,7 +77,7 @@ namespace Petroliq_API.Controllers
 
             updatedUserSettings.Id = userSettings.Id;
 
-            await _userSettingsService.UpdateForUserAsync(userIdStr, updatedUserSettings);
+            await _userSettingsService.UpdateForUserAsync(idStr, updatedUserSettings);
 
             return Ok(updatedUserSettings);
         }

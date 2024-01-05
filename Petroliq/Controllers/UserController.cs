@@ -126,7 +126,7 @@ namespace Petroliq_API.Controllers
 
             if (user is not null && user.Id is not null)
             {                
-                var userSettings = await _userSettingsService.GetForUserAsync(user.Id);
+                var userSettings = await _userSettingsService.GetForUserAsync(user.Id, true);
 
                 if (userSettings is null)
                 {
