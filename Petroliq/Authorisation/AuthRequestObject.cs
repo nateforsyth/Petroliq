@@ -1,4 +1,4 @@
-﻿namespace Petroliq_API.Services
+﻿namespace Petroliq_API.Authorisation
 {
     public class AuthRequestObject
     {

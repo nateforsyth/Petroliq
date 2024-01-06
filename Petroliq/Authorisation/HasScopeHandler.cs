@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-namespace Petroliq_API.Services
+namespace Petroliq_API.Authorisation
 {
 #pragma warning disable CS1591
     public class HasScopeHandler : AuthorizationHandler<HasScopeRequirement>
@@ -20,7 +20,7 @@ namespace Petroliq_API.Services
                 if (claim != null)
                 {
                     scopes = claim.Value.Split(' ');
-                }                
+                }
             }
 
             // Succeed if the scope array contains the required scope
@@ -30,5 +30,24 @@ namespace Petroliq_API.Services
             return Task.CompletedTask;
         }
     }
+
+    //protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, RbacRequirement requirement)
+    //{
+    //    if (!context.User.HasClaim(c => c.Type == "permissions"))
+    //    {
+    //        return Task.CompletedTask;
+    //    }
+
+    //    var permission = context.User.FindFirst(c => c.Type == "permissions" && c.Value == requirement.Permission);
+
+    //    if (permission == null)
+    //    {
+    //        return Task.CompletedTask;
+    //    }
+
+    //    context.Succeed(requirement);
+
+    //    return Task.CompletedTask;
+    //}
 #pragma warning restore CS1591
 }

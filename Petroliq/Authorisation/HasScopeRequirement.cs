@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace Petroliq_API.Services
+namespace Petroliq_API.Authorisation
 {
 #pragma warning disable CS1591
     public class HasScopeRequirement : IAuthorizationRequirement

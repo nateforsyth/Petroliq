@@ -6,6 +6,7 @@ using ZstdSharp.Unsafe;
 using System.Text.Json;
 using Petroliq_API.Services;
 using static System.Net.WebRequestMethods;
+using Petroliq_API.Authorisation;
 
 namespace Petroliq_API.Controllers
 {

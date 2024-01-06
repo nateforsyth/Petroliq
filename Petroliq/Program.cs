@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Petroliq_API.Application;
+using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
 using Petroliq_API.Services;
 using System.Reflection;

@@ -77,6 +77,8 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
 
 ### Typescript
 
+[Auth0 React (Typescript) and ASP.NET Core Web API starter](https://developer.auth0.com/resources/code-samples/full-stack/hello-world/basic-role-based-access-control/spa/react-typescript/aspnet-core-csharp)
+
 [Const objects instead of enums (to support multiple values)](https://stackoverflow.com/questions/52200963/typescript-enum-with-multiple-string-values)
 
 
