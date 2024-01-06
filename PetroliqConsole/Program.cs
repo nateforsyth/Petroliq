@@ -71,9 +71,5 @@ namespace PetroliqConsole
 
             Console.Read();
         }
-    }
-
-    
-
-    
+    }    
 }

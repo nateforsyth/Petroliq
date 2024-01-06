@@ -10,10 +10,27 @@ namespace Petroliq_API.Services
     {
         private readonly IMongoCollection<UserSettings> _userSettingsCollection;
 
-        public UserSettingsService(IOptions<PetroliqDatabaseSettings> petroliqDatabaseSettings, IConfiguration configuration) : base(configuration)
+        public UserSettingsService(IOptions<PetroliqDatabaseSettings> petroliqDatabaseSettings, IConfiguration configuration) : base(configuration, petroliqDatabaseSettings)
         {
-            var mongoDatabase = _mongoClient.GetDatabase(petroliqDatabaseSettings.Value.DatabaseName);
-            _userSettingsCollection = mongoDatabase.GetCollection<UserSettings>(petroliqDatabaseSettings.Value.UserSettingsCollectionName);
+            IMongoDatabase mongoDatabase;
+
+            try
+            {
+                mongoDatabase = _mongoClient.GetDatabase(petroliqDatabaseSettings.Value.DatabaseName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("MongoDB initialisation error, UserSettingsService", ex);
+            }
+
+            try
+            {
+                _userSettingsCollection = mongoDatabase.GetCollection<UserSettings>(petroliqDatabaseSettings.Value.UserSettingsCollectionName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("UserSettings Collection instantiation error", ex);
+            }
         }
 
         /// <summary>

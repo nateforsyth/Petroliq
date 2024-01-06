@@ -2,6 +2,41 @@
 
 Petroliq is an app that allows users to track their fuel usage, as well as accumulated discounts, providing them with insights into the best time to use their discounts for the best return.
 
+## Known issues
+
+### IIS Deployment
+
+As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.json) does not map as expected. To get around this, upon publishing, an XML property must be added to the `appsettings.json` file prior to use: `ConnectionString`. This is the MongoDB Connection String.
+
+```
+// ./appsettings.json
+{
+  "PetroliqDatabase": {
+	"ConnectionString": "[elided]", // <- this must be added
+    "DatabaseName": "Petroliq",
+    "UserSettingsCollectionName": "UserSettings",
+    "UsersCollectionName": "Users"
+  },
+  "Auth0": {
+    "Domain": "https://petroliqapi.au.auth0.com/",
+    "Audience": "https://petroliq.dreamsof.dev/api",
+    "ClientUrl": "https://petroliqapi.au.auth0.com/oauth/token"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "Petroliq": {
+    "KM_MI_FACTOR": 1.60934,
+    "MI_KM_FACTOR": 0.62,
+    "LTR_GAL_FACTOR": 4.54609,
+    "DEFAULT_ROUND_TO": 2
+  },
+  "AllowedHosts": "*"
+}
+```
 
 ## Requirements
 

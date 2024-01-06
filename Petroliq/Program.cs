@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Petroliq_API.Application;
 using Petroliq_API.Model;
 using Petroliq_API.Services;
 using System.Reflection;
@@ -105,7 +106,10 @@ namespace Petroliq
             });
             #endregion
 
-            builder.Services.AddControllers()
+            builder.Services.AddControllers(opt =>
+            {
+                opt.Filters.Add<HttpResponseExceptionFilter>();
+            })
                 .AddJsonOptions(
                     options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
@@ -115,16 +119,21 @@ namespace Petroliq
             app.UseAuthorization();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/error");
+            }
+            else
+            {
+                app.UseExceptionHandler("/error-development");
+            }
 
+            app.UseAuthorization();
 
             app.MapControllers();
 

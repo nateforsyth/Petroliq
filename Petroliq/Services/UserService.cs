@@ -7,12 +7,29 @@ namespace Petroliq_API.Services
 #pragma warning disable CS1591
     public class UserService : ServiceHelper
     {
-        private readonly IMongoCollection<User> _usersCollection;
+        private readonly IMongoCollection<User>? _usersCollection;
 
-        public UserService(IOptions<PetroliqDatabaseSettings> petroliqDatabaseSettings, IConfiguration configuration) : base(configuration)
+        public UserService(IOptions<PetroliqDatabaseSettings> petroliqDatabaseSettings, IConfiguration configuration) : base(configuration, petroliqDatabaseSettings)
         {
-            var mongoDatabase = _mongoClient.GetDatabase(petroliqDatabaseSettings.Value.DatabaseName);
-            _usersCollection = mongoDatabase.GetCollection<User>(petroliqDatabaseSettings.Value.UsersCollectionName);
+            IMongoDatabase mongoDatabase;
+
+            try
+            {
+                mongoDatabase = _mongoClient.GetDatabase(petroliqDatabaseSettings.Value.DatabaseName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("MongoDB initialisation error, UserService", ex);
+            }
+
+            try
+            {
+                _usersCollection = mongoDatabase.GetCollection<User>(petroliqDatabaseSettings.Value.UsersCollectionName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Users Collection instantiation error", ex);
+            }
         }
 
         /// <summary>
