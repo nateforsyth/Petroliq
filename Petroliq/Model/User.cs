@@ -3,12 +3,12 @@ using MongoDB.Bson;
 
 namespace Petroliq_API.Model
 {
+#pragma warning disable CS1591
     /// <summary>
-    /// User model
+    /// UserForRegistration model
     /// </summary>
     public class User
     {
-#pragma warning disable CS1591
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
@@ -17,6 +17,7 @@ namespace Petroliq_API.Model
         public string? UserName { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
+        public string? AssignedRoles { get; set; }
     }
 #pragma warning restore CS1591
 }

@@ -5,23 +5,23 @@
     {
         public enum CurrencyUnit
         {
-            Dollar = '$',
-            Pount = '£', // 0163
-            Euro = '€', // 0128
-            Yen = '¥',
-            Peso = '₱'
+            Dollar = '$', // 36
+            Pound = '£', // 163
+            Euro = '€', // 8364
+            Yen = '¥', // 165
+            Peso = '₱' // 8369
         }
 
         public enum CapacityUnit
         {
-            Litre = 'ℓ',
-            Gallon = '㏿'
+            Litre = 'ℓ', // 8467
+            Gallon = 'g' // 103
         }
 
         public enum DistanceUnit
         {
-            Kilometers = '㎞', // TODO find a better character for km as this one is rendering as ? in the console
-            Miles = 'm'
+            Kilometers = 'k', // 107
+            Miles = 'm' // 109
         }
     }
 #pragma warning restore CS1591

@@ -1,69 +1,122 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
-using RestSharp;
-using ZstdSharp.Unsafe;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Services;
-using static System.Net.WebRequestMethods;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Petroliq_API.Model;
+using Microsoft.Extensions.Options;
 using Petroliq_API.Authorisation;
 
 namespace Petroliq_API.Controllers
 {
     /// <summary>
-    /// Auth0 Authentication Controller
+    /// Authentication Controller
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IConfiguration configuration) : ControllerBase
+    public class AuthController(IConfiguration configuration, UserService userService, IOptions<AuthSettings> authSettings) : ControllerBase
     {
         private readonly IConfiguration _configuration = configuration;
+        private readonly UserService _userService = userService;
 
         /// <summary>
-        /// Authenticate with Auth0
+        /// Authenticate with this Web API using a username and password
         /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="clientSecret"></param>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
         /// <returns>Bearer token</returns>
         /// <response code="200">Returns a Bearer token if authentication was successful</response>
-        /// <response code="400">Nothing is returned if authentication fails</response>
+        /// <response code="400">Nothing is returned if authentication fails or required values not provided</response>
+        /// <response code="401">Nothing is returned if the UserForRegistration is not authorised</response>
+        /// <response code="404">Nothing is returned if no UserForRegistration is found</response>
+        /// <response code="500">Nothing is returned if the internal configuration is incorrect; see message</response>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Authenticate(string clientId, string clientSecret)
+        [Route("Login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(string email, string password)
         {
-            var client = new RestClient($"{_configuration["Auth0:ClientUrl"]}");
-            var request = new RestRequest();
-            request.Method = Method.Post;
-            request.AddHeader("content-type", "application/json");
-
-            var authReqObject = new AuthRequestObject();
-            authReqObject.client_id = clientId;
-            authReqObject.client_secret = clientSecret;
-            authReqObject.audience = $"{_configuration["Auth0:Audience"]}";
-            authReqObject.grant_type = "client_credentials";
-            var authReqObjStr = JsonSerializer.Serialize(authReqObject);
-
-            request.AddParameter("application/json", authReqObjStr, ParameterType.RequestBody);
-            RestResponse response = await client.ExecuteAsync(request);
-
-            if (response != null && response.Content != null)
-            {
-                var token = JsonSerializer.Deserialize<AuthObject>(response.Content);
-
-                if (token != null)
-                {
-                    return Ok(token.access_token);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-            }
-            else
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 return BadRequest();
             }
+
+            var user = await _userService.GetByEmailAsync(email);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                bool passwordVerified = BCrypt.Net.BCrypt.Verify(password, user.Password);
+                if (!string.IsNullOrEmpty(user.Password) && !passwordVerified)
+                {
+                    return Unauthorized();
+                }
+            }
+
+            List<Claim> userClaims = [];
+
+            userClaims.Add(new Claim("Id", user.Id));
+            userClaims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Email));
+            userClaims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+            userClaims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+
+            if (!string.IsNullOrEmpty(user.AssignedRoles))
+            {
+                var roles = user.AssignedRoles.Split(",");
+
+                if (roles.Length > 0)
+                {
+                    foreach (var role in roles)
+                    {
+                        userClaims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                }
+            }
+
+            string? jwtAuthKey = string.Empty;
+#if !DEBUG
+             jwtAuthKey = _configuration["Auth:Key"]; // authSettings.Value.Key; // from appsettings.json, for IIS usage
+#else
+            jwtAuthKey = _configuration["AuthKey"]; // from secrets.json, inaccessible when hosted on IIS            
+#endif
+
+            var jwtIssuer = authSettings.Value.Issuer;
+
+            var jwtAudience = authSettings.Value.Audience;
+
+            if (string.IsNullOrEmpty(jwtAuthKey))
+            {
+                return StatusCode(500, "Auth Key missing from configuration");
+            }
+            else if (string.IsNullOrEmpty(jwtIssuer))
+            {
+                return StatusCode(500, "Auth Issuer missing from configuration");
+            }
+            else if (string.IsNullOrEmpty(jwtAudience))
+            {
+                return StatusCode(500, "Auth Audience missing from configuration");
+            }
+            else
+            {
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtAuthKey));
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+                var securityToken = new JwtSecurityToken(
+                        issuer: jwtIssuer,
+                        audience: jwtAudience,
+                        expires: DateTime.Now.AddMinutes(5),
+                        signingCredentials: credentials,
+                        claims: userClaims
+                    );
+
+                var token = new JwtSecurityTokenHandler().WriteToken(securityToken);
+
+                return Ok(token);
+            }         
         }
     }
 }

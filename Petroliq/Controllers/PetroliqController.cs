@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Model;
 
 namespace Petroliq_API.Controllers
@@ -22,15 +20,15 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 #if !DEBUG
-        [Authorize("calculate")]
+        [Authorize("appUser")]
 #endif
         public PetroliqOverview Get()
         {
-            return new PetroliqOverview("Nate");
+            return new PetroliqOverview("Overview: TODO");
         }
 
         /// <summary>
-        /// Calculates how much fuel capacity is required to reach the specified toSpend value using the specifiedDiscount
+        /// Calculates how much fuel capacity is required to reach the specified toSpend value using the specifiedDiscount, currently waits 5 seconds to simulate long-running task
         /// </summary>
         /// <param name="toSpend"></param>
         /// <param name="specifiedDiscount"></param>
@@ -41,11 +39,11 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 #if !DEBUG
-        [Authorize("calculate")]
+        [Authorize("appUser")]
 #endif
         public async Task<IActionResult> Get(float toSpend, float specifiedDiscount)
         {
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.Delay(TimeSpan.FromSeconds(5)); // TODO remove wait and implement algorithm
 
             return Ok($"{toSpend}|{specifiedDiscount}");
         }

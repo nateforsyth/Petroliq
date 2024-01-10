@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace Petroliq_API.Model
 {
     /// <summary>
-    /// User Settings model
+    /// UserForRegistration Settings model
     /// </summary>
     public class UserSettings
     {
@@ -23,7 +23,7 @@ namespace Petroliq_API.Model
         public CapacityUnit CapacityUnit { get; set; }
         public DistanceUnit DistanceUnit { get; set; }
 
-        // TODO implement update of LastPricePerCapacityUnit when a new Fill has been added for this User
+        // TODO implement update of LastPricePerCapacityUnit when a new Fill has been added for this UserForRegistration
         public double BaseDiscount { get; set; }
         public double MinimumSpendForDiscount { get; set; }
         public double LastPricePerCapacityUnit { get; set; }

@@ -14,7 +14,46 @@ namespace PetroliqConsole
 
         static void Main(string[] args)
         {
-            var settings = new UserSettings
+            EnumTester();
+            //PasswordHashTest();
+            //PetroliqTest();
+
+            Console.Read();
+
+        }
+
+        static void EnumTester()
+        {
+            var currency = Enums.CapacityUnit.Gallon;
+            var currencySymbol = Convert.ToChar(currency);
+            var currencyCode = Convert.ToInt64(currency);
+
+            Console.WriteLine($"currency: {currency}, currencySymbol: {currencySymbol}, currencyCode: {currencyCode}");
+        }
+
+        static void PasswordHashTest()
+        {
+            string password = string.Empty;
+            string passwordHash = string.Empty;
+            bool passwordVerified = false;
+
+            Console.WriteLine("Enter your password:");
+            password = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+                passwordVerified = BCrypt.Net.BCrypt.Verify($"{password}", passwordHash);
+            }
+
+            Console.Write($"password: {password}, passwordHash: {passwordHash}, passwordVerified: {passwordVerified}");
+
+            Console.ReadLine();
+        }
+
+        static void PetroliqTest()
+        {
+            var settings = new UserSettingsForRegistration
             {
                 CountryName = "New Zealand",
                 CurrencyUnit = CurrencyUnit.Dollar,
@@ -68,8 +107,6 @@ namespace PetroliqConsole
             Console.WriteLine($"Alt volume of fuel consumed = {c.AltCapacityConsumedStr()}");
             Console.WriteLine($"{c.ConsumptionStr()}");
             Console.WriteLine($"{c.AltConsumptionStr()}");
-
-            Console.Read();
         }
-    }    
+    }
 }

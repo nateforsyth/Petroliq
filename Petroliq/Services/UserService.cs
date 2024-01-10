@@ -48,12 +48,28 @@ namespace Petroliq_API.Services
             await _usersCollection.Find(x => x.Id == dbId).FirstOrDefaultAsync();
 
         /// <summary>
+        /// Get a User object by their db Email value
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        public async Task<User?> GetByEmailAsync(string email) => 
+            await _usersCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+
+        /// <summary>
         /// Create a new User object
         /// </summary>
-        /// <param name="newUserSettings"></param>
+        /// <param name="newUser"></param>
         /// <returns></returns>
-        public async Task CreateAsync(User newUserSettings) =>
-            await _usersCollection.InsertOneAsync(newUserSettings);
+        public async Task CreateAsync(User newUser)
+        {
+            if (newUser != null)
+            {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                await _usersCollection.InsertOneAsync(newUser);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+            }
+        }
+            
 
         /// <summary>
         /// Update an existing User object

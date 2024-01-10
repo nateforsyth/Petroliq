@@ -1,7 +1,6 @@
 ﻿using Petroliq_API.Model;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Microsoft.Extensions.Configuration;
 
 namespace Petroliq_API.Services
 {
@@ -34,14 +33,14 @@ namespace Petroliq_API.Services
         }
 
         /// <summary>
-        /// Get all User Settings objects
+        /// Get all UserForRegistration Settings objects
         /// </summary>
         /// <returns></returns>
         public async Task<List<UserSettings>> GetAsync() =>
             await _userSettingsCollection.Find(_ => true).ToListAsync();
 
         /// <summary>
-        /// Get a User Settings object for a specific User
+        /// Get a UserForRegistration Settings object for a specific UserForRegistration
         /// </summary>
         /// <param name="id"></param>
         /// <param name="useUserId"></param>
@@ -59,7 +58,7 @@ namespace Petroliq_API.Services
         }
 
         /// <summary>
-        /// Create a User Settings object for a specific User
+        /// Create a UserForRegistration Settings object for a specific UserForRegistration
         /// </summary>
         /// <param name="newUserSettings"></param>
         /// <returns></returns>
@@ -67,7 +66,7 @@ namespace Petroliq_API.Services
             await _userSettingsCollection.InsertOneAsync(newUserSettings);
 
         /// <summary>
-        /// Update a User Settings object for a specific User
+        /// Update a UserForRegistration Settings object for a specific UserForRegistration
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="updatedUserSettings"></param>
@@ -76,7 +75,7 @@ namespace Petroliq_API.Services
             await _userSettingsCollection.ReplaceOneAsync(x => x.UserId == userId, updatedUserSettings);
 
         /// <summary>
-        /// Remove a User Settings object for a specific User
+        /// Remove a UserForRegistration Settings object for a specific UserForRegistration
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>

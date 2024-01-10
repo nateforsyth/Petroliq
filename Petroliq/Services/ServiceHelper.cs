@@ -14,10 +14,10 @@ namespace Petroliq_API.Services
         public ServiceHelper(IConfiguration configuration, IOptions<PetroliqDatabaseSettings> petroliqDatabaseSettings)
         {
             _configuration = configuration;
-#if DEBUG
-            _connectionString = _configuration["ConnectionString"];
+#if !DEBUG
+            _connectionString = petroliqDatabaseSettings.Value.ConnectionString; // from appsettings.json, inaccessible when hosted on IIS
 #else
-            _connectionString = petroliqDatabaseSettings.Value.ConnectionString;
+            _connectionString = _configuration["ConnectionString"]; // from secrets.json, inaccessible when hosted on IIS
 #endif
             _mongoClient = new MongoClient(_connectionString);
         }

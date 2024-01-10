@@ -88,6 +88,8 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
 
 [ASP.NET Core data annotations](https://levelup.gitconnected.com/20-important-data-annotations-in-asp-net-core-mvc-f0935dd91661)
 
+[Routing in Web API](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/routing?view=aspnetcore-8.0)
+
 
 ### MongoDB
 

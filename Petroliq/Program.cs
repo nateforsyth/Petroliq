@@ -7,7 +7,7 @@ using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
 using Petroliq_API.Services;
 using System.Reflection;
-using System.Security.Claims;
+using System.Text;
 
 namespace Petroliq
 {
@@ -18,32 +18,74 @@ namespace Petroliq
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers();
+            IConfigurationSection authSettings = builder.Configuration.GetSection("Auth");
+            builder.Services.Configure<AuthSettings>(
+                authSettings
+            );
 
-            #region Configure Auth0
-            var domain = $"{builder.Configuration["Auth0:Domain"]}";
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            builder.Services.AddCors(opt =>
             {
-                options.Authority = domain;
-                options.Audience = builder.Configuration["Auth0:Audience"];
-                options.TokenValidationParameters = new TokenValidationParameters
+                opt.AddPolicy("_Auth", policy =>
                 {
-                    NameClaimType = ClaimTypes.NameIdentifier
-                };
+                    policy
+                        .WithOrigins(
+                            "http://localhost:4040",
+                            "https://petroliq.dreamsof.dev",
+                            "https://petroliq.dreamsof.dev/api"
+                        )
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600));
+                });
             });
 
-            builder.Services.AddAuthorization(options =>
+            #region Configure Auth
+            string? jwtIssuer = string.Empty;
+            string? jwtKey = string.Empty;
+            string? jwtAudience = string.Empty;
+#if !DEBUG
+            // from appsettings.json, for IIS usage
+            jwtIssuer = authSettings.GetSection("Issuer").Value; // builder.Configuration["Auth:Issuer"];
+            jwtKey = authSettings.GetSection("Key").Value;
+            jwtAudience = authSettings.GetSection("Audience").Value;
+#else
+            // from secrets.json, inaccessible when hosted on IIS
+            jwtIssuer = builder.Configuration["Auth:Issuer"];
+            jwtKey = builder.Configuration["AuthKey"];
+            jwtAudience = builder.Configuration["Auth:Audience"];
+#endif
+
+            if (!string.IsNullOrEmpty(jwtIssuer) && !string.IsNullOrEmpty(jwtKey) && !string.IsNullOrEmpty(jwtAudience))
             {
-                options.AddPolicy("read:users", policy => policy.Requirements.Add(new HasScopeRequirement("read:users", domain)));
-                options.AddPolicy("read:userSettings", policy => policy.Requirements.Add(new HasScopeRequirement("read:userSettings", domain)));
-                options.AddPolicy("write:users", policy => policy.Requirements.Add(new HasScopeRequirement("write:users", domain)));
-                options.AddPolicy("write:userSettings", policy => policy.Requirements.Add(new HasScopeRequirement("write:userSettings", domain)));
-                options.AddPolicy("calculate", policy => policy.Requirements.Add(new HasScopeRequirement("calculate", domain)));
-            });
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidAudience = jwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                    };
 
-            builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+                    options.Authority = jwtIssuer;
+                });
+
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("admin", policy => policy.Requirements.Add(new HasRoleRequirement(jwtIssuer, ["administrator"])));
+                    options.AddPolicy("userAdmin", policy => policy.Requirements.Add(new HasRoleRequirement(jwtIssuer, ["administrator", "users.read", "users.write", "userSettings.read", "userSettings.write"])));
+                    options.AddPolicy("appUser", policy => policy.Requirements.Add(new HasRoleRequirement(jwtIssuer, ["appUser", "administrator", "users.read", "users.write", "userSettings.read", "userSettings.write"])));
+                });
+
+                builder.Services.AddSingleton<IAuthorizationHandler, HasRoleHandler>();
+            }
             #endregion
+
+            builder.Services.AddControllers();
 
             #region Configure MongoDB
             builder.Services.Configure<PetroliqDatabaseSettings>(
@@ -75,31 +117,27 @@ namespace Petroliq
                     }
                 });
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.UseInlineDefinitionsForEnums();
+
+                var securitySchema = new OpenApiSecurityScheme
                 {
-                    Description = @"<p>JWT Authorization header using the Bearer scheme.</p><p>Enter 'Bearer' [space] and then your token in the text input below.</p><p>Example: '<b>Bearer</b> <i>12345abcdef</i>'</p>",
+                    Description = "Using the Authorization header with the Bearer scheme.",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
-
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    Reference = new OpenApiReference
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                                {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                                },
-                                Scheme = "oauth2",
-                                Name = "Bearer",
-                                In = ParameterLocation.Header,
-                        },
-                        new List<string>()
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
                     }
+                };
+
+                options.AddSecurityDefinition("Bearer", securitySchema);
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { securitySchema, new[] { "Bearer" } }
                 });
 
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -114,7 +152,11 @@ namespace Petroliq
                 .AddJsonOptions(
                     options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
+            builder.Services.AddHttpContextAccessor();
+
             var app = builder.Build();
+
+            app.UseCors("_Auth");
 
             app.UseAuthentication();
             app.UseAuthorization();
