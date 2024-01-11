@@ -1,7 +1,7 @@
 import * as React from "react";
 import INavigationBarProps from "./INavigationBarProps";
 
-import { Link, Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
