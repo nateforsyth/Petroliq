@@ -19,14 +19,23 @@ import AdbIcon from '@mui/icons-material/Adb';
 import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutlined';
 
 import ILink from "../../interfaces/ILink";
+import ILinkWithCallback from "../../interfaces/ILinkWithCallback";
 import "./NavigationBar.css";
+import IUser from "../../interfaces/API/IUser";
 
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
-const settings: ILink[] = [{ label: 'Profile', link: 'Profile' }, { label: 'Account', link: 'Account' }, { label: 'Dashboard', link: 'Dashboard' }, { label: 'Logout', link: 'Logout' }];
 
 const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+
+    const [loggedIn, setLoggedIn] = React.useState<boolean>(false);
+    const [bearerToken, setBearerToken] = React.useState<string>("");
+    const [userData, setUserData] = React.useState<IUser>({});
+    // const user: IUser = {
+    //     Id: "";
+    //     FirstName
+    // };
 
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
@@ -43,6 +52,24 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
+
+    const handleLogIn = () => {
+        console.log(`handleLogin invoked`);
+
+        setLoggedIn(true);
+
+        handleCloseUserMenu();
+    };
+
+    const handleLogOut = () => {
+        console.log(`handleLogOut invoked`);
+
+        setLoggedIn(false);
+
+        handleCloseUserMenu();
+    };
+
+    const settings: ILinkWithCallback[] = [{ label: 'Profile', link: 'Profile', callback: handleCloseUserMenu }, { label: 'Account', link: 'Account', callback: handleCloseUserMenu }, { label: 'Dashboard', link: 'Dashboard', callback: handleCloseUserMenu }, { label: 'Login', link: 'Login', callback: handleLogIn, hide: loggedIn }, { label: 'Logout', link: 'Logout', callback: handleLogOut, hide: !loggedIn }];
 
     let htmlElement: JSX.Element = <AppBar position="static">
         <Container maxWidth="lg">
@@ -161,9 +188,11 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                         onClose={handleCloseUserMenu}
                     >
                         {settings.map((setting) => (
-                            <MenuItem key={setting.link} onClick={handleCloseUserMenu}>
-                                <Typography textAlign="center">{setting.label}</Typography>
-                            </MenuItem>
+                            !setting.hide ? 
+                                <MenuItem key={setting.link} onClick={setting.callback}>
+                                    <Typography textAlign="center">{setting.label}</Typography>
+                                </MenuItem> :
+                                null
                         ))}
                     </Menu>
                 </Box>
