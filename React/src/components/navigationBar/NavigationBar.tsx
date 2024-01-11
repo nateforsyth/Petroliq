@@ -21,8 +21,8 @@ import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutl
 import ILink from "../../interfaces/ILink";
 import "./NavigationBar.css";
 
-const pages: ILink[] = [{ label: 'New Fill', link: 'newFill' }, { label: 'Fills', link: 'fills' }, { label: 'Graphs', link: 'graphs' }];
-const settings: ILink[] = [{ label: 'Profile', link: 'profile' }, { label: 'Account', link: 'account' }, { label: 'Dashboard', link: 'dashboard' }, { label: 'Logout', link: 'logout' }];
+const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
+const settings: ILink[] = [{ label: 'Profile', link: 'Profile' }, { label: 'Account', link: 'Account' }, { label: 'Dashboard', link: 'Dashboard' }, { label: 'Logout', link: 'Logout' }];
 
 const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -48,7 +48,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         <Container maxWidth="xl">
             <Toolbar disableGutters>
                 <LocalGasStationOutlinedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-                <Link className="navLink" to="home">
+                <Link className="navLink" to="Home">
                     <Typography
                         className="mainAppHeading"
                         variant="h6"
@@ -105,7 +105,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                     </Menu>
                 </Box>
                 <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-                <Link className="navLink" to="home">
+                <Link className="navLink" to="Home">
                     <Typography
                         className="mainAppHeading"
                         variant="h5"

@@ -1,14 +1,22 @@
+import * as React from "react";
+
+// MUI imports
+import Box from "@mui/material/Box";
+import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
+
 import { Link, Outlet } from "react-router-dom";
-import getFills from "../dataLayer/data"
-import IFill from "../interfaces/IFill";
+import getFills from "../../dataLayer/data"
+import IFill from "../../interfaces/IFill";
 
-import FillForm from "../components/fillForm/fillForm";
+import FillForm from "../../components/fillForm/fillForm";
 
-import './fills.css';
+import './Fills.css';
+import IFillsProps from "./_fillsProps/IFillsProps";
 
-export default function Fills() {
-    let fills: IFill[] = getFills();
-    return(
+const Fills: React.FunctionComponent<IFillsProps> = (props) => {
+    const fills: IFill[] = getFills();
+
+    let htmlElement: JSX.Element =
         <div>
             <div className={`subheadingElement`}>
                 <h2 className="pageHeader">
@@ -23,7 +31,7 @@ export default function Fills() {
                                 style={{ display: "block", margin: "1rem 0" }}
                                 to={`/fills/${fill.index}`}
                                 key={fill.index}
-                                >
+                            >
                                 {fill.date.format("DD/MM/YYYY")}
                             </Link>
                         ))
@@ -32,6 +40,9 @@ export default function Fills() {
                 <Outlet />
                 <FillForm />
             </div>
-        </div>
-    )
+        </div>;
+
+    return htmlElement;
 }
+
+export default Fills;

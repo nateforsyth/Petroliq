@@ -2,11 +2,11 @@ import './index.css';
 import App from './App';
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import NewFill from './routes/newFill';
-import Graphs from './routes/graphs';
-import Home from './routes/home';
-import Fills from './routes/fills';
-import Fill from './routes/fill';
+import NewFill from './routes/fills/NewFill';
+import Graphs from './routes/graphs/Graphs';
+import Home from './routes/Home';
+import Fills from './routes/fills/Fills';
+import Fill from './routes/fills/Fill';
 
 // https://reactrouter.com/docs/en/v6/getting-started/tutorial
 // https://mui.com/material-ui/getting-started/installation/
@@ -17,9 +17,9 @@ root.render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<App />}>
-        <Route path="home" element={<Home />} />
-        <Route path="newFill" element={<NewFill />} />
-        <Route path="fills" element={<Fills />}>
+        <Route path="Home" element={<Home />} />
+        <Route path="NewFill" element={<NewFill />} />
+        <Route path="Fills" element={<Fills />}>
           <Route
             index
             element={
@@ -30,7 +30,7 @@ root.render(
           />
           <Route path=":fillId" element={<Fill />} />
         </Route>
-        <Route path="graphs" element={<Graphs />} />
+        <Route path="Graphs" element={<Graphs />} />
         <Route
           path="*"
           element={

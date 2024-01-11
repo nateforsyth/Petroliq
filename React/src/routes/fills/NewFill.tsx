@@ -1,15 +1,15 @@
 import * as React from "react";
-import IHomeProps from "./IHomeProps";
+import INewFillProps from "./_fillsProps/INewFillProps";
 
-const Home: React.FunctionComponent<IHomeProps> = (props) => {
+const NewFill: React.FunctionComponent<INewFillProps> = (props) => {
     let htmlElement: JSX.Element = 
     <main className={`subheadingElement`}>
             <h2 className="pageHeader">
-                Home
+                New Fill
             </h2>
         </main>;
 
         return htmlElement;
 }
 
-export default Home;
+export default NewFill;
