@@ -4,14 +4,16 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import NavigationBar from './components/navigationBar/NavigationBar';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className={`mainHeaderContainer paddingLeftOvr`}>
+        <NavigationBar />
+        {/* <div className={`mainHeaderContainer paddingLeftOvr`}>
           <h1 className={`mainHeader`}>PetrolIQ</h1>
-        </div>
+        </div> */}
       </header>
       <div className="appWrapper">
         <nav className={`mainNav paddingLeftOvr paddingRightOvr`}>
