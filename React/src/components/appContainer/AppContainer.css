@@ -1,0 +1,92 @@
+.App {
+    text-align: left;
+
+    height: 100%;
+}
+
+.MaxHeightOvr {
+    height: 100%;
+}
+
+.appWrapper {
+    display: flex;
+    flex-direction: row;
+
+    height: 100%;
+
+    margin-left: 91px;
+    margin-right: 91px;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.App-header {
+    background-color: white;
+    /* min-height: 100vh; */
+    display: flex;
+    /* flex-direction: column; */
+    flex-grow: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: #282c34;
+}
+
+.mainHeaderContainer {
+    width: 100%;
+}
+
+.mainHeader {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.mainNav {
+    border-bottom: solid 1px;
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    /* row */
+    width: 10%;
+
+    background-color: lightgray;
+}
+
+.contentWrapper {
+    width: 100%;
+}
+
+.mainNavElements {
+    /* flex-grow: 1; */
+
+    /* padding-top: 16px;
+    padding-bottom: 16px; */
+
+    text-decoration: none;
+}
+
+h4.navHeader {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+h2.pageHeader {
+    margin-top: 20px;
+}
+
+.paddingLeftOvr {
+    padding-left: 1rem;
+}
+
+.paddingRightOvr {
+    padding-left: 1rem;
+}
+
+.subheadingElement {
+    display: flex;
+    flex-direction: row;
+}
+
+.App-link {
+    color: #61dafb;
+}

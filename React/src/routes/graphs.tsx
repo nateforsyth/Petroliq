@@ -1,6 +1,6 @@
 export default function Graphs() {
     return(
-        <main className={`subheadingElement paddingLeftOvr`}>
+        <main className={`subheadingElement`}>
             <h2 className="pageHeader">
                 Graphs
             </h2>

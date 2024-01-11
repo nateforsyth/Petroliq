@@ -1,6 +1,6 @@
 export default function NewFill() {
     return(
-        <main className={`subheadingElement paddingLeftOvr`}>
+        <main className={`subheadingElement`}>
             <h2 className="pageHeader">
                 New Fill
             </h2>

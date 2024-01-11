@@ -10,12 +10,12 @@ export default function Fills() {
     let fills: IFill[] = getFills();
     return(
         <div>
-            <div className={`subheadingElement paddingLeftOvr`}>
+            <div className={`subheadingElement`}>
                 <h2 className="pageHeader">
                     Fills
                 </h2>
             </div>
-            <div className="fillsElement paddingLeftOvr">
+            <div className="fillsElement">
                 <nav className={`fillElementNav`}>
                     {
                         fills.map(fill => (
