@@ -45,7 +45,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     };
 
     let htmlElement: JSX.Element = <AppBar position="static">
-        <Container maxWidth="xl">
+        <Container maxWidth="lg">
             <Toolbar disableGutters>
                 <LocalGasStationOutlinedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
                 <Link className="navLink" to="Home">
