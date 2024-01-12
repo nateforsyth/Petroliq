@@ -33,7 +33,6 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(Policy = "userAdmin")]
-        //[Authorize]
         public async Task<List<User>> Get() => await _userService.GetAsync();
 
         /// <summary>

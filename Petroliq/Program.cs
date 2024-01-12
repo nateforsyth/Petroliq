@@ -29,7 +29,7 @@ namespace Petroliq
                 {
                     policy
                         .WithOrigins(
-                            "http://localhost:4040",
+                            "http://localhost:3000",
                             "https://petroliq.dreamsof.dev",
                             "https://petroliq.dreamsof.dev/api"
                         )

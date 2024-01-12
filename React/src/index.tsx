@@ -7,6 +7,10 @@ import Graphs from './routes/graphs/Graphs';
 import Home from './routes/Home';
 import Fills from './routes/fills/Fills';
 import Fill from './routes/fills/Fill';
+import Account from './routes/admin/Account';
+import Dashboard from './routes/admin/Dashboard';
+import Profile from './routes/admin/Profile';
+import Register from './routes/admin/Register';
 
 // https://reactrouter.com/docs/en/v6/getting-started/tutorial
 // https://mui.com/material-ui/getting-started/installation/
@@ -31,6 +35,10 @@ root.render(
           <Route path=":fillId" element={<Fill />} />
         </Route>
         <Route path="Graphs" element={<Graphs />} />
+        <Route path="Account" element={<Account />} />
+        <Route path="Dashboard" element={<Dashboard />} />
+        <Route path="Profile" element={<Profile />} />
+        <Route path="Register" element={<Register />} />
         <Route
           path="*"
           element={

@@ -1,15 +1,15 @@
 import * as React from "react";
-import IAccountProps from "./_adminProps/IAccountProps";
+import IRegisterProps from "./_adminProps/IRegisterProps";
 
-const Account: React.FunctionComponent<IAccountProps> = (props) => {
+const Register: React.FunctionComponent<IRegisterProps> = (props) => {
     let htmlElement: JSX.Element =
         <main className={`subheadingElement`}>
             <h2 className="pageHeader">
-                Account
+                Register
             </h2>
         </main>;
 
     return htmlElement;
 }
 
-export default Account;
+export default Register;
