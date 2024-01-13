@@ -5,7 +5,6 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Petroliq_API.Model;
 using Microsoft.Extensions.Options;
 using Petroliq_API.Authorisation;
 
@@ -116,7 +115,7 @@ namespace Petroliq_API.Controllers
                 var token = new JwtSecurityTokenHandler().WriteToken(securityToken);
 
                 return Ok(token);
-            }         
+            }
         }
     }
 }

@@ -177,8 +177,71 @@ namespace Petroliq_API.Controllers
                 updatedUser.Id = user.Id;
 
                 await _userService.UpdateAsync(id, updatedUser);
+                updatedUser.Password = string.Empty; // remove hashed password before returning
 
                 return Ok(updatedUser);
+            }
+        }
+
+        /// <summary>
+        /// Change the Password for the specified User by userId
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <returns>Updated User object</returns>
+        /// <response code="200">Returns a 200 response without payload if the password was successfully updated</response>
+        /// <response code="400">Nothing is returned if required values not provided</response>
+        /// <response code="401">Nothing is returned if the Password for the User doesn't match what they've provided</response>
+        /// <response code="404">Nothing is returned if User is not found</response>
+        /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
+        [HttpPost]
+        [Route("ChangePassword")]
+        [Authorize(Policy = "appUser")]
+        public async Task<IActionResult> ChangePassword(string userId, string oldPassword, string newPassword)
+        {
+            if (HttpContext.User == null)
+            {
+                return StatusCode(500, "No User in Context");
+            }
+
+            (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword))
+            {
+                return BadRequest();
+            }
+
+            var user = await _userService.GetAsync(userId);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                bool passwordVerified = BCrypt.Net.BCrypt.Verify(oldPassword, user.Password);
+                if (!string.IsNullOrEmpty(user.Password) && !passwordVerified)
+                {
+                    return Unauthorized();
+                }
+                else if (string.IsNullOrEmpty(user.Id))
+                {
+                    return BadRequest();
+                }
+                else if (retrieveAppUserOnly && !loggedInUserId.Equals(user.Id))
+                {
+                    return Unauthorized("Your assigned role means that you cannot update other Users' data");
+                }
+                else
+                {
+                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    user.Password = passwordHash;
+
+                    await _userService.UpdateAsync(user.Id, user);
+
+                    return Ok();
+                }
             }
         }
 
@@ -235,5 +298,27 @@ namespace Petroliq_API.Controllers
 
             return NoContent();
         }
+
+        //[HttpPost]
+        //[Route("ResetPassword")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> ResetPassword(string email)
+        //{
+        //    if (string.IsNullOrEmpty(email))
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    var user = await _userService.GetByEmailAsync(email);
+
+        //    if (user is null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    else
+        //    {
+        //        // TODO implement password reset requests
+        //    }
+        //}
     }
 }
