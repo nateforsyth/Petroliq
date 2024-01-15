@@ -12,15 +12,15 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
 // ./appsettings.json
 {
   "PetroliqDatabase": {
-	"ConnectionString": "[elided]", // <- this must be added
+    "ConnectionString": "REPLACE_ME_REFER_README",
     "DatabaseName": "Petroliq",
     "UserSettingsCollectionName": "UserSettings",
     "UsersCollectionName": "Users"
   },
-  "Auth0": {
-    "Domain": "https://petroliqapi.au.auth0.com/",
+  "Auth": {
     "Audience": "https://petroliq.dreamsof.dev/api",
-    "ClientUrl": "https://petroliqapi.au.auth0.com/oauth/token"
+    "Key": "REPLACE_ME_REFER_README",
+    "Issuer": "https://petroliq.dreamsof.dev"
   },
   "Logging": {
     "LogLevel": {
