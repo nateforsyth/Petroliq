@@ -2,11 +2,12 @@
 
 Petroliq is an app that allows users to track their fuel usage, as well as accumulated discounts, providing them with insights into the best time to use their discounts for the best return.
 
+
 ## Known issues
 
 ### IIS Deployment
 
-As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.json) does not map as expected. To get around this, upon publishing, an XML property must be added to the `appsettings.json` file prior to use: `ConnectionString`. This is the MongoDB Connection String.
+As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.json) does not map as expected. To get around this, upon publishing, XML properties must be updated in the `appsettings.json` file prior to use: `PetroliqDatabase.ConnectionString` and `Auth.Key` respectively. This is the MongoDB Connection String.
 
 ```
 // ./appsettings.json
@@ -37,6 +38,7 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
   "AllowedHosts": "*"
 }
 ```
+
 
 ## Requirements
 
@@ -113,3 +115,12 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
 ### Swagger/Open API
 
 [Learn more about Swagger/OpenAPI](https://aka.ms/aspnetcore/swashbuckle)
+
+
+## Support and help
+
+This is not intended to be run by anyone other than me - I do not offer help or support if you were attempting to fork this repository.
+
+This repository has been made public in support of my in-flight job-search.
+
+This repository will be made private without warning.
