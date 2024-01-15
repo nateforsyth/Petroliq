@@ -14,7 +14,7 @@ import "./AppContainer.css"
 import Home from "../../routes/Home";
 import { User } from "../model/API/User";
 
-type ContextType = { currentUser: User | null };
+type ContextType = { currentUser: User | null, resetUser: any };
 
 const AppContainer: React.FunctionComponent<IAppContainerProps> = (props) => {
 
@@ -24,6 +24,11 @@ const AppContainer: React.FunctionComponent<IAppContainerProps> = (props) => {
 
     const userRetrievedCallback = (user: User) => {
         setCurrentUser(user);
+    };
+
+    const resetUser = () => {
+        console.log(`reset user invoked`);
+        setCurrentUser(null);
     };
 
     let htmlElement: JSX.Element =

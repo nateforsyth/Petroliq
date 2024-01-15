@@ -71,6 +71,7 @@ namespace Petroliq_API.Controllers
             }
             else
             {
+                user.Password = string.Empty;
                 return Ok(user);
             }
         }

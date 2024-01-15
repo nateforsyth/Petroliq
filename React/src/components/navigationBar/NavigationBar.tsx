@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Link } from "react-router-dom";
+import { Link, NavigateFunction } from "react-router-dom";
 
 // MUI imports
 import AppBar from '@mui/material/AppBar';
@@ -24,18 +24,15 @@ import ILink from "../../interfaces/ILink";
 import ILinkWithCallback from "../../interfaces/ILinkWithCallback";
 import "./NavigationBar.css";
 import IUser from "../../interfaces/API/IUser";
-
-// API imports
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 // Config imports
-import settingsJson from "./../../settings.json";
-import IDecodedJwt from "../../interfaces/API/IDecodedJwt";
 import LoginForm from "../loginForm/LoginForm";
 import { AuthService } from "../../dataLayer/services/AuthService";
 import IAuthResult from "../../interfaces/API/IAuthResult";
 import { UserService } from "../../dataLayer/services/UserService";
+import IDecodedJwt from "../../interfaces/API/IDecodedJwt";
+import { jwtDecode } from "jwt-decode";
 
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
 
@@ -50,9 +47,57 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
 
     // auth state
     const [loggedIn, setLoggedIn] = React.useState<boolean>(false);
-    const [bearerToken, setBearerToken] = React.useState<string>("");
     const [loggedInUserId, setLoggedInUserId] = React.useState<string>("");
     const [userData, setUserData] = React.useState<IUser>({});
+
+    // child component state for auth
+    const [loginSuccess, setLoginSuccess] = React.useState<boolean>(false);
+    const [loginFail, setLoginFail] = React.useState<boolean>(false);
+    const [authFailMessage, setAuthFailMessage] = React.useState<string>("");
+    const [authFailTimeoutSeconds, setAuthFailTimeoutSeconds] = React.useState<number>(5);
+
+    const authSuccessTimeoutSeconds: number = 3;
+    const navigate: NavigateFunction = useNavigate();
+
+    // reset loginSuccess and loginFail state so another attempt can be made
+    React.useEffect(() => {
+        if (!loggingIn) {
+            setLoginSuccess(false);
+            setLoginFail(false);
+            setAuthFailMessage("");
+        }
+    }, [loggingIn]);
+
+    React.useEffect(() => {
+        // check if user already logged in with valid browser token
+        retrieveUserWithBrowserToken();
+            // .then(() => {
+            //     console.log(`Logged in using browser token: ${loggedInUserId}`);
+            // })
+            // .catch((err: any) => {
+            //     console.log(`Login failed with browser token, likely expired`, err);
+            // });
+    }, []);
+
+    const retrieveUserWithBrowserToken = async () => {
+        const currentBearerToken: string = AuthService.getBrowserAuthToken();
+        console.log(currentBearerToken);
+
+        if (currentBearerToken !== null && currentBearerToken !== undefined && currentBearerToken !== "") {
+            const decodedJwt: IDecodedJwt = jwtDecode<IDecodedJwt>(currentBearerToken, { header: false });
+            const authResult: IAuthResult = {
+                jwt: currentBearerToken,
+                decodedJwt: decodedJwt,
+                resposeCode: 200,
+                message: "Authorised using browser token"
+            };
+
+            await getUser(authResult);
+        }
+        else {
+
+        }
+    };
 
     const handleLoggingIn = () => {
         setLoggingIn(true);
@@ -84,20 +129,42 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     };
 
     const logIn = async (email: string, password: string) => {
-
-        const authResult: IAuthResult = await AuthService.login(email, password);
+        const authResult = await AuthService.login(email, password);
 
         if (authResult !== null && (authResult.jwt !== null && authResult.jwt !== undefined && authResult.jwt !== "") && authResult.decodedJwt !== null) {
             if (authResult.decodedJwt?.Id !== null && authResult.decodedJwt?.Id !== undefined && authResult.decodedJwt?.Id !== "") {
-                const user: IUser = await UserService.getUserById(authResult.jwt, authResult.decodedJwt.Id);
+                getUser(authResult);
+            }
+        }
+        else {
+            if (authResult !== null) {
+                setAuthFailMessage(`${authResult.message}, you must wait ${authFailTimeoutSeconds} seconds before trying again, or cancel.`); // TODO implement account lock if login attemps exceed some specified threshold
+            }
 
-                if (user !== null) {
-                    setLoggedIn(true);
-                    setLoggedInUserId(authResult.decodedJwt?.Id);
-                    setUserData(user);
-                    props.userRetrievedCallback(user);
-                    setLoggingIn(false);
-                }
+            setLoginFail(true);
+
+            await new Promise(f => setTimeout(f, (authFailTimeoutSeconds * 1000)));
+
+            setAuthFailTimeoutSeconds(authFailTimeoutSeconds * authFailTimeoutSeconds);
+            setLoginFail(false);
+        }
+    };
+
+    const getUser = async (authResult: IAuthResult) => {
+        if (authResult.decodedJwt !== undefined && authResult.decodedJwt.Id !== undefined && authResult.jwt !== undefined) {
+            const user: IUser = await UserService.getUserById(authResult.jwt, authResult.decodedJwt.Id);
+            console.log(user);
+
+            if (user !== null) {
+                setLoggedIn(true);
+                localStorage.setItem("user", authResult.jwt);
+                setLoggedInUserId(authResult.decodedJwt?.Id);
+                setUserData(user);
+                props.userRetrievedCallback(user);
+                setLoginSuccess(true);
+
+                await new Promise(f => setTimeout(f, authSuccessTimeoutSeconds * 1000));
+                setLoggingIn(false);
             }
         }
     };
@@ -106,9 +173,12 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         setLoggedIn(false);
         setLoggedInUserId("");
         setUserData({});
+        localStorage.setItem("user", "");
         props.userRetrievedCallback(null);
 
         handleCloseUserMenu();
+
+        navigate("/");
     };
 
     const settings: ILinkWithCallback[] = [{ label: 'Profile', link: 'Profile', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Account', link: 'Account', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Dashboard', link: 'Dashboard', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Login', link: 'Login', isLink: false, callback: handleLoggingIn, hide: loggedIn }, { label: 'Logout', link: 'Logout', isLink: false, callback: handleLogOut, hide: !loggedIn }];
@@ -131,9 +201,9 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                 <Typography textAlign="center">You are not logged in</Typography>
             </MenuItem>
         </div>;
-    
+
     const loginForm: JSX.Element = loggingIn ?
-        <div><LoginForm loginCallback={handleLogin} loginCancelCallback={setLoggingIn} /></div> :
+        <div><LoginForm loginCallback={handleLogin} loginCancelCallback={setLoggingIn} loginSuccess={loginSuccess} loginFail={loginFail} authFailMessage={authFailMessage} authSuccessTimeoutSeconds={authSuccessTimeoutSeconds} authFailTimeoutSeconds={authFailTimeoutSeconds} /></div> :
         <div></div>;
 
     let htmlElement: JSX.Element = <AppBar position="static">
