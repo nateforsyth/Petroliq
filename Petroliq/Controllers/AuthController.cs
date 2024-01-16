@@ -26,6 +26,8 @@ namespace Petroliq_API.Controllers
         private readonly string _jwtAuthKey = string.Empty;
         private readonly string _jwtIssuer = string.Empty;
         private readonly string _jwtAudience = string.Empty;
+        private readonly int _refreshTokenValiditityDays = -1;
+        private readonly int _tokenValidityMinutes = -1;
 
         /// <summary>
         /// Authentication Controller
@@ -47,6 +49,8 @@ namespace Petroliq_API.Controllers
 
             _jwtIssuer = _authSettings.Value.Issuer;
             _jwtAudience = _authSettings.Value.Audience;
+            _refreshTokenValiditityDays = _authSettings.Value.RefreshTokenValiditityDays;
+            _tokenValidityMinutes = _authSettings.Value.TokenValidityMinutes;
         }
 
         /// <summary>
@@ -121,14 +125,14 @@ namespace Petroliq_API.Controllers
                 else
                 {
                     // generate tokens
-                    var token = AuthHelpers.GenerateAuthToken(userClaims, _jwtAuthKey, _jwtIssuer, _jwtAudience);
+                    var token = AuthHelpers.GenerateAuthToken(userClaims, _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
                     var refreshToken = AuthHelpers.GenerateRefreshToken();
 
                     // assess token validity
-                    if (int.TryParse(_configuration["Auth:RefreshTokenValiditityDays"], out int refreshTokenValidityDays))
+                    if (_refreshTokenValiditityDays != -1 && token != null)
                     {
                         user.RefreshToken = refreshToken;
-                        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(refreshTokenValidityDays);
+                        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(_refreshTokenValiditityDays);
 
                         // update User record in db
                         await _userService.UpdateAsync(user.Id, user);
@@ -205,16 +209,24 @@ namespace Petroliq_API.Controllers
                                 return NotFound("User record state is invalid");
                             }
 
-                            if (user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+                            if (user.RefreshToken != refreshToken)
                             {
-                                return BadRequest("Invalid or expired refresh token");
+                                user.RefreshToken = null;
+                                await _userService.UpdateAsync(user.Id, user);
+
+                                return BadRequest("Invalid refresh token, User's Refresh Token has been revoked, they will need to log in again");
                             }
 
-                            var newToken = AuthHelpers.GenerateAuthToken(principal.Claims.ToList(), _jwtAuthKey, _jwtIssuer, _jwtAudience);
-                            var newRefreshToken = AuthHelpers.GenerateRefreshToken();
+                            // force revocation of refresh tokens after expiry
+                            if (user.RefreshTokenExpiryTime <= DateTime.Now)
+                            {
+                                user.RefreshToken = null;
+                                await _userService.UpdateAsync(user.Id, user);
 
-                            user.RefreshToken = newRefreshToken;
-                            await _userService.UpdateAsync(user.Id, user);
+                                return BadRequest("Expired refresh token, User's Refresh Token has been revoked for rotation");
+                            }
+
+                            var newToken = AuthHelpers.GenerateAuthToken(principal.Claims.ToList(), _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
 
                             return Ok(new
                             {

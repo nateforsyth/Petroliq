@@ -71,31 +71,44 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     React.useEffect(() => {
         // check if user already logged in with valid browser token
         retrieveUserWithBrowserToken();
-            // .then(() => {
-            //     console.log(`Logged in using browser token: ${loggedInUserId}`);
-            // })
-            // .catch((err: any) => {
-            //     console.log(`Login failed with browser token, likely expired`, err);
-            // });
     }, []);
 
     const retrieveUserWithBrowserToken = async () => {
         const currentBearerToken: string = AuthService.getBrowserAuthToken();
-        console.log(currentBearerToken);
+        const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
+        const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
+        const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
 
-        if (currentBearerToken !== null && currentBearerToken !== undefined && currentBearerToken !== "") {
+        if (currentBearerToken !== null && currentBearerToken !== undefined && currentBearerToken !== "" && currentBearerTokenExpiryDt > new Date()) {
+            console.log(`Retrieving user using cached access token`);
             const decodedJwt: IDecodedJwt = jwtDecode<IDecodedJwt>(currentBearerToken, { header: false });
             const authResult: IAuthResult = {
                 jwt: currentBearerToken,
+                refreshToken: currentRefreshToken,
+                jwtExpiry: currentBearerTokenExpiry,
                 decodedJwt: decodedJwt,
                 resposeCode: 200,
                 message: "Authorised using browser token"
             };
 
+            console.log(`Retrieving user`);
             await getUser(authResult);
         }
-        else {
+        else { // attempt to refresh access token using refresh token
+            console.log(`Refreshing access token`);
+            const authResult: IAuthResult = await AuthService.refreshToken(currentBearerToken, currentRefreshToken);
+            console.log(authResult);
 
+            if (authResult !== null && (authResult.jwt !== null && authResult.jwt !== undefined && authResult.jwt !== "") && authResult.decodedJwt !== null) {
+                if (authResult.decodedJwt?.Id !== null && authResult.decodedJwt?.Id !== undefined && authResult.decodedJwt?.Id !== "") {
+                    console.log(`Retrieving user`);
+                    await getUser(authResult);
+                }
+            }
+            else {
+                console.warn("Failed to refresh access token, user needs to log in again");
+                handleLogOut();
+            }
         }
     };
 
@@ -128,12 +141,12 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         logIn(email, password);
     };
 
-    const logIn = async (email: string, password: string) => {
-        const authResult = await AuthService.login(email, password);
+    const logIn = async (email: string, password: string): Promise<void> => {
+        const authResult: IAuthResult = await AuthService.login(email, password);
 
         if (authResult !== null && (authResult.jwt !== null && authResult.jwt !== undefined && authResult.jwt !== "") && authResult.decodedJwt !== null) {
             if (authResult.decodedJwt?.Id !== null && authResult.decodedJwt?.Id !== undefined && authResult.decodedJwt?.Id !== "") {
-                getUser(authResult);
+                await getUser(authResult);
             }
         }
         else {
@@ -151,13 +164,18 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     };
 
     const getUser = async (authResult: IAuthResult) => {
-        if (authResult.decodedJwt !== undefined && authResult.decodedJwt.Id !== undefined && authResult.jwt !== undefined) {
+        console.log(authResult);
+        if (authResult.decodedJwt !== undefined && authResult.decodedJwt.Id !== undefined && authResult.jwt !== undefined && authResult.refreshToken !== undefined && authResult.jwtExpiry !== undefined) {
             const user: IUser = await UserService.getUserById(authResult.jwt, authResult.decodedJwt.Id);
             console.log(user);
 
             if (user !== null) {
                 setLoggedIn(true);
-                localStorage.setItem("user", authResult.jwt);
+
+                localStorage.setItem("token", authResult.jwt); // TODO replace with HttpOnly cookie
+                localStorage.setItem("refresh", authResult.refreshToken); // TODO replace with HttpOnly cookie
+                localStorage.setItem("tokenExpiry", authResult.jwtExpiry); // TODO replace with HttpOnly cookie
+
                 setLoggedInUserId(authResult.decodedJwt?.Id);
                 setUserData(user);
                 props.userRetrievedCallback(user);
@@ -173,7 +191,9 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         setLoggedIn(false);
         setLoggedInUserId("");
         setUserData({});
-        localStorage.setItem("user", "");
+        localStorage.setItem("token", ""); // TODO replace with HttpOnly cookie
+        localStorage.setItem("refresh", ""); // TODO replace with HttpOnly cookie
+        localStorage.setItem("tokenExpiry", ""); // TODO replace with HttpOnly cookie
         props.userRetrievedCallback(null);
 
         handleCloseUserMenu();

@@ -28,7 +28,7 @@ namespace Petroliq_API.Authorisation
             return (appUserOnly, loggedInUserId);
         }
 
-        public static JwtSecurityToken GenerateAuthToken(List<Claim> userClaims, string jwtAuthKey, string jwtIssuer, string jwtAudience)
+        public static JwtSecurityToken GenerateAuthToken(List<Claim> userClaims, string jwtAuthKey, string jwtIssuer, string jwtAudience, int expiryOffsetMinutes)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtAuthKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -36,7 +36,7 @@ namespace Petroliq_API.Authorisation
             var securityToken = new JwtSecurityToken(
                     issuer: jwtIssuer,
                     audience: jwtAudience,
-                    expires: DateTime.Now.AddMinutes(5),
+                    expires: DateTime.Now.AddMinutes(expiryOffsetMinutes),
                     signingCredentials: credentials,
                     claims: userClaims
                 );

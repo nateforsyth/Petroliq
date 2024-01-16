@@ -116,7 +116,9 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
         console.log(`password successfully changed`);
 
         if (props.user !== null) {
-            const currentBearerToken: string = AuthService.getBrowserAuthToken();
+            const currentBearerToken: string = AuthService.getBrowserAuthToken(); // TODO replace getBrowserAuthToken with HttpOnly cookie
+            const currentRefreshToken: string = AuthService.getBrowserRefreshToken(); // TODO replace getBrowserAuthToken with HttpOnly cookie
+            const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry(); // TODO replace getBrowserAuthToken with HttpOnly cookie
             const userId: string = props.user !== null && props.user !== undefined && props.user.Id !== "" && props.user.Id !== undefined ? props.user?.Id : "";
 
             if (props.user !== null && currentBearerToken !== undefined && currentBearerToken !== null && currentBearerToken !== "" && userId !== "") {

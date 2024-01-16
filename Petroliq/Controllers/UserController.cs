@@ -33,7 +33,19 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(Policy = "userAdmin")]
-        public async Task<List<User>> Get() => await _userService.GetAsync();
+        public async Task<List<User>> Get()
+        {
+            var users = await _userService.GetAsync();
+
+            users.ForEach(u =>
+            {
+                u.Password = string.Empty;
+                u.RefreshToken = string.Empty;
+                u.RefreshTokenExpiryTime = null;
+            });
+
+            return users;
+        }
 
         /// <summary>
         /// Get a User object by Id string
@@ -72,6 +84,8 @@ namespace Petroliq_API.Controllers
             else
             {
                 user.Password = string.Empty;
+                user.RefreshToken = string.Empty;
+                user.RefreshTokenExpiryTime = null;
                 return Ok(user);
             }
         }
@@ -178,7 +192,9 @@ namespace Petroliq_API.Controllers
                 updatedUser.Id = user.Id;
 
                 await _userService.UpdateAsync(id, updatedUser);
-                updatedUser.Password = string.Empty; // remove hashed password before returning
+                updatedUser.Password = string.Empty;
+                user.RefreshToken = string.Empty;
+                user.RefreshTokenExpiryTime = null;
 
                 return Ok(updatedUser);
             }
