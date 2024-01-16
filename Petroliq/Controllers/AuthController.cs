@@ -27,6 +27,12 @@ namespace Petroliq_API.Controllers
         private readonly string _jwtIssuer = string.Empty;
         private readonly string _jwtAudience = string.Empty;
 
+        /// <summary>
+        /// Authentication Controller
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="userService"></param>
+        /// <param name="authSettings"></param>
         public AuthController(IConfiguration configuration, UserService userService, IOptions<AuthSettings> authSettings)
         {
             _authSettings = authSettings;
