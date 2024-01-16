@@ -18,6 +18,9 @@ namespace Petroliq_API.Model
         public string? Email { get; set; }
         public string? Password { get; set; }
         public string? AssignedRoles { get; set; }
+
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
     }
 #pragma warning restore CS1591
 }
