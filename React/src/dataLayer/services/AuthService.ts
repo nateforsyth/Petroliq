@@ -3,32 +3,22 @@ import axios, { AxiosResponse } from "axios";
 // Config imports
 import settingsJson from "./../../settings.json";
 import IDecodedJwt from "../../interfaces/API/IDecodedJwt";
-import { jwtDecode } from "jwt-decode";
 import IAuthResult from "../../interfaces/API/IAuthResult";
-import { User } from "../../components/model/API/User";
 
 export class AuthService {
 
-    public static getBrowserAuthToken = (): string => { // TODO replace getBrowserAuthToken with HttpOnly cookie
-
-        const currentBearerToken: string | null = localStorage.getItem("token");
-
-        console.log(`getBrowserAuthToken: ${currentBearerToken}`);
-
-        if (currentBearerToken !== null) {
-            return currentBearerToken;
+    public static getBrowserUserId = (): string => {
+        const currentUserId: string | null = localStorage.getItem("userId");
+        if (currentUserId !== null) {
+            return currentUserId;
         }
         else {
             return "";
         }
     }
 
-    public static getBrowserAuthTokenExpiry = (): string => { // TODO replace getBrowserAuthTokenExpiry with HttpOnly cookie
-
+    public static getBrowserAuthTokenExpiry = (): string => {
         const currentBearerTokenExpiry: string | null = localStorage.getItem("tokenExpiry");
-
-        console.log(`getBrowserAuthTokenExpiry: ${currentBearerTokenExpiry}`);
-
         if (currentBearerTokenExpiry !== null) {
             return currentBearerTokenExpiry;
         }
@@ -37,12 +27,8 @@ export class AuthService {
         }
     }
 
-    public static getBrowserRefreshToken = (): string => { // TODO replace getBrowserRefreshToken with HttpOnly cookie
-
+    public static getBrowserRefreshToken = (): string => {
         const currentRefreshToken: string | null = localStorage.getItem("refresh");
-
-        console.log(`getBrowserRefreshToken: ${currentRefreshToken}`);
-
         if (currentRefreshToken !== null) {
             return currentRefreshToken;
         }
@@ -51,9 +37,10 @@ export class AuthService {
         }
     }
 
-    public static refreshToken = async (currentAccessToken: string, currentRefreshToken: string): Promise<IAuthResult> => {
+    public static refreshToken = async (principalId: string, currentRefreshToken: string): Promise<IAuthResult> => {
 
-        let jwt: string = "";
+        // let jwt: string = "";
+        let userId: string = "";
         let refreshToken: string = "";
         let refreshTokenExpiry: string = "";
         let decodedJwt: IDecodedJwt;
@@ -62,30 +49,28 @@ export class AuthService {
 
         try {
             return await axios.post(
-                requestUrl, 
+                requestUrl,
                 {
-                    "AccessToken": `${currentAccessToken}`,
-                    "RefreshToken": `${currentRefreshToken}`
+                    "PrincipalId": `${principalId}`,
+                    "RefreshTokenFingerprint": `${currentRefreshToken}`
                 },
                 {
                     headers: {
                         "Content-Type": "application/json"
-                    }
+                    },
+                    withCredentials: true
                 }
             )
                 .then((jwtResult: AxiosResponse<any, any>) => {
                     if (jwtResult !== null && jwtResult.data !== null) {
-                        console.log(jwtResult.data);
-                        jwt = jwtResult.data.Token;
+                        userId = jwtResult.data.UserId;
                         refreshToken = jwtResult.data.RefreshToken;
                         refreshTokenExpiry = jwtResult.data.Expiration;
-                        decodedJwt = jwtDecode<IDecodedJwt>(jwt, { header: false });
 
                         authResult = {
-                            jwt: jwt,
+                            userId: userId,
                             refreshToken: refreshToken,
                             jwtExpiry: refreshTokenExpiry,
-                            decodedJwt: decodedJwt,
                             resposeCode: 200
                         };
 
@@ -118,17 +103,15 @@ export class AuthService {
     }
 
     public static login = async (email: string, password: string): Promise<IAuthResult> => {
-
-        let jwt: string = "";
+        let userId: string = "";
         let refreshToken: string = "";
-        let refreshTokenExpiry: string = "";
-        let decodedJwt: IDecodedJwt;
+        let tokenExpiry: string = "";
         let authResult: IAuthResult = {};
-        const requestUrl: string = `${settingsJson.apiBaseUrl}/api/Auth/Login`; // ?email=${email}&password=${password}
+        const requestUrl: string = `${settingsJson.apiBaseUrl}/api/Auth/Login`;
 
         try {
             return await axios.post(
-                requestUrl, 
+                requestUrl,
                 {
                     "Email": `${email}`,
                     "Password": `${password}`
@@ -136,22 +119,21 @@ export class AuthService {
                 {
                     headers: {
                         "Content-Type": "application/json"
-                    }
+                    },
+                    withCredentials: true
                 }
             )
                 .then((jwtResult: AxiosResponse<any, any>) => {
                     if (jwtResult !== null && jwtResult.data !== null) {
                         console.log(jwtResult.data);
-                        jwt = jwtResult.data.Token;
+                        userId = jwtResult.data.UserId;
                         refreshToken = jwtResult.data.RefreshToken;
-                        refreshTokenExpiry = jwtResult.data.Expiration;
-                        decodedJwt = jwtDecode<IDecodedJwt>(jwt, { header: false });
+                        tokenExpiry = jwtResult.data.Expiration;
 
                         authResult = {
-                            jwt: jwt,
+                            userId: userId,
                             refreshToken: refreshToken,
-                            jwtExpiry: refreshTokenExpiry,
-                            decodedJwt: decodedJwt,
+                            jwtExpiry: tokenExpiry,
                             resposeCode: 200
                         };
 

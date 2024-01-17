@@ -1,10 +1,9 @@
 import IDecodedJwt from "./IDecodedJwt";
 
 export default interface IAuthResult {
-    jwt?: string;
+    userId?: string;
     refreshToken?: string;
     jwtExpiry?: string;
-    decodedJwt?: IDecodedJwt;
     resposeCode?: number;
     message?: string;
 }
