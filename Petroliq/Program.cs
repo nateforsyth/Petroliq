@@ -30,6 +30,7 @@ namespace Petroliq
                     policy
                         .WithOrigins(
                             "http://localhost:3000",
+                            "https://app.dreamsof.dev",
                             "https://petroliq.dreamsof.dev",
                             "https://petroliq.dreamsof.dev/api"
                         )
