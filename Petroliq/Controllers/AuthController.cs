@@ -144,8 +144,8 @@ namespace Petroliq_API.Controllers
                         await _userService.UpdateAsync(user.Id, user);
 
                         string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
-                        Response.Cookies.Append("X-Fingerprint", refreshToken, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
+                        Response.Cookies.Append("X-Fingerprint", refreshToken, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
 
                         return Ok(new
                         {
@@ -179,7 +179,7 @@ namespace Petroliq_API.Controllers
         [HttpPost]
         [Route("Refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> Refresh(TokenModel tokenModel)
+        public async Task<IActionResult> Refresh([FromBody] TokenModel tokenModel)
         {
             if (tokenModel == null)
             {
@@ -274,8 +274,10 @@ namespace Petroliq_API.Controllers
                         string newHashedFingerprint = BCrypt.Net.BCrypt.HashPassword(refreshTokenCookie);
 
                         string tokenString = new JwtSecurityTokenHandler().WriteToken(newToken);
-                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
-                        Response.Cookies.Append("X-Fingerprint", refreshTokenCookie, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+                        Response.Cookies.Delete("X-Access-Token");
+                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
+                        Response.Cookies.Delete("X-Fingerprint");
+                        Response.Cookies.Append("X-Fingerprint", refreshTokenCookie, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
 
                         return Ok(new
                         {
