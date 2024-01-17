@@ -42,23 +42,24 @@ export class UserService {
     }
 
     public static postChangeUserPassword = async (userId: string, oldPassword: string, newPassword: string): Promise<IObjectUpdateResult> => {
-        console.log(`postChangeUserPassword invoked`);
         let updateResult: IObjectUpdateResult = {};
         try {
-            const requestUrl: string = `${settingsJson.apiBaseUrl}/api/User/ChangePassword?userId=${userId}&oldPassword=${oldPassword}&newPassword=${newPassword}`;
-            console.log(requestUrl);
+            const requestUrl: string = `${settingsJson.apiBaseUrl}/api/User/ChangePassword`;
             return await axios.post(
                 requestUrl,
                 {
+                    "UserId": `${userId}`,
+                    "OldPassword": `${oldPassword}`,
+                    "NewPassword": `${newPassword}`
+                },
+                {
                     headers: {
                         "Accept": "application/json",
-                    }
+                    },
+                    withCredentials: true
                 },
-                { withCredentials: true }
             )
                 .then((passwordChangeResult: AxiosResponse<any, any>) => {
-                    console.log(passwordChangeResult);
-
                     if (passwordChangeResult !== null) {
                         updateResult = {
                             resposeCode: 200,

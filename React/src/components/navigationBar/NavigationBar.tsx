@@ -61,9 +61,6 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const userId_localStorage: string = UseReadLocalStorage("userId") as string;
     const refreshToken_localStorage: string = UseReadLocalStorage("refresh") as string;
     const tokenExpiry_localStorage: string = UseReadLocalStorage("tokenExpiry") as string;
-    // const [userId_localStorage, setUserId_localStorage] = useLocalStorage("userId", AuthService.getBrowserUserId());
-    // const [refreshToken_localStorage, setRefreshToken_localStorage] = useLocalStorage("refresh", AuthService.getBrowserRefreshToken());
-    // const [tokenExpiry_localStorage, setTokenExpiry_localStorage] = useLocalStorage("tokenExpiry", AuthService.getBrowserAuthTokenExpiry());
 
     const authSuccessTimeoutSeconds: number = 3;
     const navigate: NavigateFunction = useNavigate();
@@ -83,8 +80,6 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     }, [loggingIn]);
 
     React.useEffect(() => {
-        console.log(`localStorage updated;\r\n\tuserId: ${userId_localStorage}\r\n\trefreshToken: ${refreshToken_localStorage}\r\n\ttokenExpiry: ${tokenExpiry_localStorage}`);
-
         if (loggedInUserId !== userId_localStorage) {
             setLoggedInUserId(userId_localStorage);
         }
@@ -96,10 +91,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     }, [userId_localStorage, refreshToken_localStorage, tokenExpiry_localStorage]);
 
     const retrieveUserWithBrowserToken = async () => {
-        // const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
         const currentBearerTokenExpiryDt: Date = new Date(tokenExpiry_localStorage);
-        // const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
-        // const currentUserId: string = AuthService.getBrowserUserId();
 
         if (currentBearerTokenExpiryDt > new Date() && userId_localStorage) {
             const authResult: IAuthResult = {

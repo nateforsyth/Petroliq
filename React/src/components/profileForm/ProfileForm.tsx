@@ -25,7 +25,6 @@ interface FormInputs {
     LastName?: string | null;
     UserName?: string | null;
     Email?: string | null;
-    // Password?: string | null; // TODO implement password changing functionality
 
     Id?: string | null;
     AssignedRoles?: string | null;
@@ -98,7 +97,6 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
 
     React.useEffect(() => {
         if (props.resetForm) {
-            console.log(`ProfileForm > props.resetForm: ${props.resetForm}`);
             setuser(null);
         }
     }, [props.resetForm]);
@@ -115,7 +113,6 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
     };
 
     const handlePasswordChange = async (oldPassword: string, newPassword: string) => {
-        console.log(`handlePasswordChange invoked`);
         const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
         const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
 
@@ -128,7 +125,6 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                 const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id, currentRefreshToken);
 
                 if (authResult !== null && authResult.resposeCode === 200) {
-                    console.log(`Token refreshed, invoking password change`);
                     await changePassword(props.user.Id, oldPassword, newPassword);
                 }
                 else {

@@ -9,9 +9,7 @@ const Profile: React.FunctionComponent<IProfileProps> = (props) => {
     const [resetForm, setResetForm] = React.useState<boolean>(false);
 
     React.useEffect(() => {
-        console.log(currentUser);
         if (currentUser === null) {
-            console.log(`user logged out or cleared, resetting profile form`);
             setResetForm(true);
         }
     }, [currentUser]);

@@ -105,7 +105,8 @@ const PasswordChangeForm: React.FC<IPasswordChangeFormProps> = (props) => {
 
     const defaultValues: LoginFormInputs = {
         userId: props.userToUpdate?.Id,
-        oldPassword: ""
+        oldPassword: "",
+        newPassword: ""
     };
 
     const methods = useForm<LoginFormInputs>({
@@ -116,9 +117,8 @@ const PasswordChangeForm: React.FC<IPasswordChangeFormProps> = (props) => {
     const onSubmit: SubmitHandler<LoginFormInputs> = async (
         data: LoginFormInputs
     ) => {
-        // setLoggingIn(true);
         setProcessing(true);
-        // props.loginCallback(data.username, data.password);
+        props.passwordChangeCallback(data.oldPassword, data.newPassword);
         methods.reset();
     };
 
