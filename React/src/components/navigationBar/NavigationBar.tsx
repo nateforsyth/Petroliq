@@ -32,6 +32,9 @@ import { AuthService } from "../../dataLayer/services/AuthService";
 import IAuthResult from "../../interfaces/API/IAuthResult";
 import { UserService } from "../../dataLayer/services/UserService";
 
+// local storage and cookie imports
+import { UseReadLocalStorage } from "../../hooks/UseReadLocalStorage";
+
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
 
 const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
@@ -54,8 +57,21 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const [authFailMessage, setAuthFailMessage] = React.useState<string>("");
     const [authFailTimeoutSeconds, setAuthFailTimeoutSeconds] = React.useState<number>(5);
 
+    // local storage state handler hooks
+    const userId_localStorage: string = UseReadLocalStorage("userId") as string;
+    const refreshToken_localStorage: string = UseReadLocalStorage("refresh") as string;
+    const tokenExpiry_localStorage: string = UseReadLocalStorage("tokenExpiry") as string;
+    // const [userId_localStorage, setUserId_localStorage] = useLocalStorage("userId", AuthService.getBrowserUserId());
+    // const [refreshToken_localStorage, setRefreshToken_localStorage] = useLocalStorage("refresh", AuthService.getBrowserRefreshToken());
+    // const [tokenExpiry_localStorage, setTokenExpiry_localStorage] = useLocalStorage("tokenExpiry", AuthService.getBrowserAuthTokenExpiry());
+
     const authSuccessTimeoutSeconds: number = 3;
     const navigate: NavigateFunction = useNavigate();
+
+    React.useEffect(() => {
+        // check if user already logged in with valid browser token
+        retrieveUserWithBrowserToken();
+    }, []);
 
     // reset loginSuccess and loginFail state so another attempt can be made
     React.useEffect(() => {
@@ -67,21 +83,29 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     }, [loggingIn]);
 
     React.useEffect(() => {
-        // check if user already logged in with valid browser token
-        retrieveUserWithBrowserToken();
-    }, []);
+        console.log(`localStorage updated;\r\n\tuserId: ${userId_localStorage}\r\n\trefreshToken: ${refreshToken_localStorage}\r\n\ttokenExpiry: ${tokenExpiry_localStorage}`);
+
+        if (loggedInUserId !== userId_localStorage) {
+            setLoggedInUserId(userId_localStorage);
+        }
+
+        if (userId_localStorage === "" && refreshToken_localStorage === "" && tokenExpiry_localStorage === "") {
+            console.log("navigating home");
+            navigate("/");
+        }
+    }, [userId_localStorage, refreshToken_localStorage, tokenExpiry_localStorage]);
 
     const retrieveUserWithBrowserToken = async () => {
-        const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
-        const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
-        const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
-        const currentUserId: string = AuthService.getBrowserUserId();
+        // const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
+        const currentBearerTokenExpiryDt: Date = new Date(tokenExpiry_localStorage);
+        // const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
+        // const currentUserId: string = AuthService.getBrowserUserId();
 
-        if (currentBearerTokenExpiryDt > new Date() && loggedInUserId) {
+        if (currentBearerTokenExpiryDt > new Date() && userId_localStorage) {
             const authResult: IAuthResult = {
-                userId: loggedInUserId,
-                refreshToken: currentRefreshToken,
-                jwtExpiry: currentBearerTokenExpiry,
+                userId: userId_localStorage,
+                refreshToken: refreshToken_localStorage,
+                jwtExpiry: tokenExpiry_localStorage,
                 resposeCode: 200,
                 message: "Authorised using browser token"
             };
@@ -89,8 +113,8 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
             await getUser(authResult);
         }
         else { // attempt to refresh access token using refresh token
-            if (currentUserId) {
-                const authResult: IAuthResult = await AuthService.refreshToken(currentUserId, currentRefreshToken);
+            if (userId_localStorage) {
+                const authResult: IAuthResult = await AuthService.refreshToken(userId_localStorage, refreshToken_localStorage);
 
                 if (authResult !== null && authResult.userId !== null) {
                     await getUser(authResult);
@@ -178,12 +202,12 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         setLoggedIn(false);
         setLoggedInUserId("");
         setUserData({});
+        props.userRetrievedCallback(null);
+        handleCloseUserMenu();
+
+        localStorage.setItem("userId", "");
         localStorage.setItem("refresh", "");
         localStorage.setItem("tokenExpiry", "");
-        localStorage.setItem("userId", "");
-        props.userRetrievedCallback(null);
-
-        handleCloseUserMenu();
 
         navigate("/");
     };
@@ -200,7 +224,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                 <Typography textAlign="center">Welcome <b>{userData.FirstName}</b></Typography>
             </MenuItem>
             <MenuItem key="userId">
-                <Typography textAlign="center">Id: {loggedInUserId}</Typography>
+                <Typography textAlign="center">Id: {userId_localStorage}</Typography>
             </MenuItem>
         </div> :
         <div>

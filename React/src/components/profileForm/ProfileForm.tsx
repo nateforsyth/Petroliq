@@ -12,6 +12,8 @@ import { UserService } from "../../dataLayer/services/UserService";
 import IObjectUpdateResult from "../../interfaces/API/IObjectUpdateResult";
 import { User } from "../model/API/User";
 import { AuthService } from "../../dataLayer/services/AuthService";
+import { AppHelpers } from "../../utilities/AppHelpers";
+import IAuthResult from "../../interfaces/API/IAuthResult";
 
 interface FormSelectProps {
     name: string;
@@ -113,32 +115,47 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
     };
 
     const handlePasswordChange = async (oldPassword: string, newPassword: string) => {
-        console.log(`password successfully changed`);
+        console.log(`handlePasswordChange invoked`);
+        const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
+        const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
 
-        if (props.user !== null) {
-            // const currentBearerToken: string = AuthService.getBrowserAuthToken(); // TODO replace getBrowserAuthToken with HttpOnly cookie
-            const currentRefreshToken: string = AuthService.getBrowserRefreshToken(); // TODO replace getBrowserAuthToken with HttpOnly cookie
-            const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry(); // TODO replace getBrowserAuthToken with HttpOnly cookie
-            const userId: string = props.user !== null && props.user !== undefined && props.user.Id !== "" && props.user.Id !== undefined ? props.user?.Id : "";
+        if (props.user !== null && props.user.Id) {
+            if (currentBearerTokenExpiryDt > new Date()) {
+                await changePassword(props.user.Id, oldPassword, newPassword);
+            }
+            else { // need to refresh access token before continuing
+                const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
+                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id, currentRefreshToken);
 
-            // if (props.user !== null && currentBearerToken !== undefined && currentBearerToken !== null && currentBearerToken !== "" && userId !== "") {
-            //     const passwordChangeResult: IObjectUpdateResult = await UserService.postChangeUserPassword(currentBearerToken, userId, oldPassword, newPassword);
-
-            //     if (passwordChangeResult !== null) {
-            //         setUserUpdateSuccess(true);
-            //         await new Promise(f => setTimeout(f, 3000));
-            //         setChangingPassword(false);
-            //     }
-            //     else {
-            //         setUserUpdateFailMessage(`Password change failed, check your passwords and try again.`);
-            //         setUserUpdateFail(true);
-            //         await new Promise(f => setTimeout(f, (userUpdateFailTimeoutSeconds * 1000)));
-            //         setUserUpdateFail(false);
-            //     }
-            // }
+                if (authResult !== null && authResult.resposeCode === 200) {
+                    console.log(`Token refreshed, invoking password change`);
+                    await changePassword(props.user.Id, oldPassword, newPassword);
+                }
+                else {
+                    console.warn("Failed to refresh access token, user needs to log in again");
+                    AppHelpers.forceLogout();
+                }
+            }
         }
         else { // session expired, trigger clear of user profile data in app state
+            AppHelpers.forceLogout();
+        }
+    };
 
+    const changePassword = async (userId: string, oldPassword: string, newPassword: string): Promise<void> => {
+        const passwordChangeResult: IObjectUpdateResult = await UserService.postChangeUserPassword(userId, oldPassword, newPassword);
+
+        if (passwordChangeResult !== null) {
+            setUserUpdateSuccess(true);
+            await new Promise(f => setTimeout(f, 3000));
+            setChangingPassword(false);
+            console.log(`password successfully changed`);
+        }
+        else {
+            setUserUpdateFailMessage(`Password change failed, check your passwords and try again.`);
+            setUserUpdateFail(true);
+            await new Promise(f => setTimeout(f, (userUpdateFailTimeoutSeconds * 1000)));
+            setUserUpdateFail(false);
         }
     };
 
