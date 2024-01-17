@@ -26,17 +26,9 @@ export function UseReadLocalStorage<T>(key: string): Value<T> {
             return null;
         }
 
-        // return as T
+        // try return as T
         try {
             return item ? item as T : null;
-        }
-        catch (error) {
-            console.warn(`Error reading localStorage key “${key}”:`, error);
-        }
-
-        // try parse as JSON
-        try {
-            return item ? (JSON.parse(item) as T) : null;
         }
         catch (error) {
             console.warn(`Error reading localStorage key “${key}”:`, error);
