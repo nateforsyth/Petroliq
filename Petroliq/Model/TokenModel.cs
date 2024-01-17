@@ -6,13 +6,13 @@
     public class TokenModel
     {
         /// <summary>
-        /// Access token
+        /// Principal Id
         /// </summary>
-        public string? AccessToken { get; set; }
+        public string? PrincipalId { get; set; }
 
         /// <summary>
-        /// Refresh token
+        /// Refresh token, hashed and to be compared with cookie
         /// </summary>
-        public string? RefreshToken { get; set; }
+        public string? RefreshTokenFingerprint { get; set; }
     }
 }

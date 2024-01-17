@@ -9,6 +9,9 @@ using Microsoft.Extensions.Options;
 using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
 using MongoDB.Driver.Linq;
+using Microsoft.AspNetCore.Identity;
+using Amazon.Auth.AccessControlPolicy;
+using Newtonsoft.Json.Linq;
 
 namespace Petroliq_API.Controllers
 {
@@ -54,11 +57,11 @@ namespace Petroliq_API.Controllers
         }
 
         /// <summary>
-        /// Authenticate with this Web API using a username and password
+        /// Authenticate with this Web API using a username and password, token is persisted to the HttpOnly cookie
         /// </summary>
         /// <param name="loginModel">LoginModel instance</param>
         /// <returns>Bearer and Refresh tokens</returns>
-        /// <response code="200">Returns Bearer and Refresh tokens as well as an expiry date if authentication was successful</response>
+        /// <response code="200">Returns User Id, hashed Refresh token and Token expiry date if authentication was successful</response>
         /// <response code="400">Nothing is returned if authentication fails or required values not provided</response>
         /// <response code="401">Nothing is returned if the UserForRegistration is not authorised</response>
         /// <response code="404">Nothing is returned if no UserForRegistration is found</response>
@@ -128,6 +131,9 @@ namespace Petroliq_API.Controllers
                     var token = AuthHelpers.GenerateAuthToken(userClaims, _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
                     var refreshToken = AuthHelpers.GenerateRefreshToken();
 
+                    // generate a hashedFingerprint to use for validation of the Refresh token
+                    string hashedFingerprint = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+
                     // assess token validity
                     if (_refreshTokenValiditityDays != -1 && token != null)
                     {
@@ -137,10 +143,14 @@ namespace Petroliq_API.Controllers
                         // update User record in db
                         await _userService.UpdateAsync(user.Id, user);
 
+                        string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+                        Response.Cookies.Append("X-Fingerprint", refreshToken, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+
                         return Ok(new
                         {
-                            Token = new JwtSecurityTokenHandler().WriteToken(token),
-                            RefreshToken = refreshToken,
+                            UserId = user.Id,
+                            RefreshToken = hashedFingerprint,
                             Expiration = token.ValidTo
                         });
                     }
@@ -157,13 +167,14 @@ namespace Petroliq_API.Controllers
         }
 
         /// <summary>
-        /// Refresh an Access Token using a provided Refresh Token
+        /// Refresh an Access Token using a provided Refresh Token, token is persisted to the HttpOnly cookie
         /// </summary>
         /// <param name="tokenModel"></param>
         /// <returns>Refreshed Bearer and Refresh tokens</returns>
-        /// <response code="200">Returns refreshed Bearer and Refresh tokens as well as an expiry date if authentication was successful</response>
-        /// <response code="400">Nothing is returned if authentication fails or required values not provided</response>
-        /// <response code="404">Nothing is returned if no UserForRegistration is found</response>
+        /// <response code="200">Returns User Id, hashed Refresh token and Token expiry date if authentication was successful</response>
+        /// <response code="400">Nothing is returned if authentication fails, required values are not provided or fingerprint is missing</response>
+        /// <response code="401">Nothing is returned if fingerprint validation fails</response>
+        /// <response code="404">Nothing is returned if no User is not found or is in an invalid state</response>
         /// <response code="500">Nothing is returned if the internal configuration is incorrect; see message</response>
         [HttpPost]
         [Route("Refresh")]
@@ -175,81 +186,109 @@ namespace Petroliq_API.Controllers
                 return BadRequest("Invalid request, token model is null");
             }
 
-            string? token = tokenModel.AccessToken;
-            string? refreshToken = tokenModel.RefreshToken;
+            string? tokenCookie = Request.Cookies["X-Access-Token"];
+            string? refreshTokenCookie = Request.Cookies["X-Fingerprint"]; // unhashed refresh token
 
-            if (string.IsNullOrEmpty(_jwtAuthKey))
+            if (refreshTokenCookie != null && !string.IsNullOrEmpty(refreshTokenCookie))
             {
-                return StatusCode(500, "Auth Key missing from configuration");
-            }
-            else if (string.IsNullOrEmpty(_jwtIssuer))
-            {
-                return StatusCode(500, "Auth Issuer missing from configuration");
-            }
-            else if (string.IsNullOrEmpty(_jwtAudience))
-            {
-                return StatusCode(500, "Auth Audience missing from configuration");
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(refreshToken) && !string.IsNullOrEmpty(_jwtAuthKey))
+                string? refreshTokenFingerprint = tokenModel.RefreshTokenFingerprint;
+
+                bool fingerprintsMatch = BCrypt.Net.BCrypt.Verify(refreshTokenCookie, refreshTokenFingerprint);
+
+                if (!fingerprintsMatch)
                 {
-                    var principal = AuthHelpers.GetPrincipalFromExpiredToken(token, _jwtAuthKey);
-
-                    if (principal != null)
-                    {
-                        var idClaim = principal.Claims.FirstOrDefault(c => c.Type == "Id");
-                        if (idClaim != null)
-                        {
-                            string userId = idClaim.Value;
-                            User? user = await _userService.GetAsync(userId);
-
-                            if (user == null || string.IsNullOrEmpty(user.Id))
-                            {
-                                return NotFound("User record state is invalid");
-                            }
-
-                            if (user.RefreshToken != refreshToken)
-                            {
-                                user.RefreshToken = null;
-                                await _userService.UpdateAsync(user.Id, user);
-
-                                return BadRequest("Invalid refresh token, User's Refresh Token has been revoked, they will need to log in again");
-                            }
-
-                            // force revocation of refresh tokens after expiry
-                            if (user.RefreshTokenExpiryTime <= DateTime.Now)
-                            {
-                                user.RefreshToken = null;
-                                await _userService.UpdateAsync(user.Id, user);
-
-                                return BadRequest("Expired refresh token, User's Refresh Token has been revoked for rotation");
-                            }
-
-                            var newToken = AuthHelpers.GenerateAuthToken(principal.Claims.ToList(), _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
-
-                            return Ok(new
-                            {
-                                Token = new JwtSecurityTokenHandler().WriteToken(newToken),
-                                RefreshToken = refreshToken,
-                                Expiration = newToken.ValidTo
-                            });
-                        }
-                        else
-                        {
-                            return BadRequest("Token doesn't contain required Id claim");
-                        }
-                    }
-                    else
-                    {
-                        return BadRequest("Unable to retrieve principal from token");
-                    }
+                    return Unauthorized("Fingerprints don't match");
+                }
+                else if (string.IsNullOrEmpty(_jwtAuthKey))
+                {
+                    return StatusCode(500, "Auth Key missing from configuration");
+                }
+                else if (string.IsNullOrEmpty(_jwtIssuer))
+                {
+                    return StatusCode(500, "Auth Issuer missing from configuration");
+                }
+                else if (string.IsNullOrEmpty(_jwtAudience))
+                {
+                    return StatusCode(500, "Auth Audience missing from configuration");
                 }
                 else
                 {
-                    return BadRequest("Tokens or Auth Key invalid");
+                    if (!string.IsNullOrEmpty(tokenModel.PrincipalId))
+                    {
+                        bool userAndPrincipalMatch = false;
+
+                        // get User from database matching provided PrincipalId
+                        User? user = await _userService.GetAsync(tokenModel.PrincipalId);
+
+                        if (user == null || string.IsNullOrEmpty(user.Id))
+                        {
+                            return NotFound("User record state is invalid");
+                        }
+
+                        // get expired Principal from cookie if available
+                        ClaimsPrincipal? expiredPrincipal = null;
+                        if (tokenCookie != null && !string.IsNullOrEmpty(tokenCookie))
+                        {
+                            expiredPrincipal = AuthHelpers.GetPrincipalFromExpiredToken(tokenCookie, _jwtAuthKey);
+                        }
+
+                        if (expiredPrincipal != null)
+                        {
+                            var principalClaimId = expiredPrincipal.Claims.FirstOrDefault(c => c.Type == "Id");
+                            if (principalClaimId != null)
+                            {
+                                userAndPrincipalMatch = principalClaimId.Value == user.Id;
+                            }
+                        }
+
+                        if (!userAndPrincipalMatch)
+                        {
+                            return BadRequest("Mismatch in token data");
+                        }
+
+                        if (user.RefreshToken != refreshTokenCookie)
+                        {
+                            user.RefreshToken = null;
+                            await _userService.UpdateAsync(user.Id, user);
+
+                            return BadRequest("Invalid refresh token, User's Refresh Token has been revoked, they will need to log in again");
+                        }
+
+                        // force revocation of refresh tokens after expiry
+                        if (user.RefreshTokenExpiryTime <= DateTime.Now)
+                        {
+                            user.RefreshToken = null;
+                            await _userService.UpdateAsync(user.Id, user);
+
+                            return BadRequest("Expired refresh token, User's Refresh Token has been revoked for rotation, they'll need to log in again");
+                        }
+
+                        var newToken = AuthHelpers.GenerateAuthToken(expiredPrincipal.Claims.ToList(), _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
+
+                        // generate a new hashedFingerprint to use for validation of the Refresh token, to replace the existing cookie
+                        string newHashedFingerprint = BCrypt.Net.BCrypt.HashPassword(refreshTokenCookie);
+
+                        string tokenString = new JwtSecurityTokenHandler().WriteToken(newToken);
+                        Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+                        Response.Cookies.Append("X-Fingerprint", refreshTokenCookie, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+
+                        return Ok(new
+                        {
+                            UserId = user.Id,
+                            RefreshToken = newHashedFingerprint,
+                            Expiration = newToken.ValidTo
+                        });
+                    }
+                    else
+                    {
+                        return BadRequest("Tokens or Auth Key invalid");
+                    }
                 }
             }
+            else
+            {
+                return BadRequest("Fingerprint missing");
+            }            
         }
 
         /// <summary>
