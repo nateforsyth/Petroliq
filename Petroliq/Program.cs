@@ -35,7 +35,8 @@ namespace Petroliq
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600));
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600))
+                        .AllowCredentials();
                 });
             });
 

@@ -225,6 +225,11 @@ namespace Petroliq_API.Controllers
                             return NotFound("User record state is invalid");
                         }
 
+                        if (string.IsNullOrEmpty(user.RefreshToken) || !user.RefreshToken.Equals(refreshTokenCookie))
+                        {
+                            return Unauthorized("Refresh token cookie doens't match User record");
+                        }
+
                         // get expired Principal from cookie if available
                         ClaimsPrincipal? expiredPrincipal = null;
                         if (tokenCookie != null && !string.IsNullOrEmpty(tokenCookie))
