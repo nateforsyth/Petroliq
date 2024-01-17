@@ -50,19 +50,21 @@ namespace Petroliq_API.Controllers
         /// <summary>
         /// Get a User object by Id string
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="fetchUserModel"></param>
         /// <returns>The specified User object</returns>
         /// <response code="200">Returns the User object</response>
         /// <response code="401">Nothing is returned if the user is unauthorised or trying to access a record they're not allowed to access</response>
         /// <response code="404">Nothing is returned if the object is null</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        [HttpGet("GetById/{id:length(24)}")]
+        //[HttpGet("GetById/{id:length(24)}")]
+        [HttpPost]
+        [Route("FetchById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<ActionResult<User>> GetById(string id)
+        public async Task<ActionResult<User>> FetchById([FromBody] FetchUserModel fetchUserModel)
         {
             if (HttpContext.User == null)
             {
@@ -71,29 +73,36 @@ namespace Petroliq_API.Controllers
 
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            var user = await _userService.GetAsync(id);
+            if (fetchUserModel != null && !string.IsNullOrEmpty(fetchUserModel.Id))
+            {
+                var user = await _userService.GetAsync(fetchUserModel.Id);
 
-            if (user is null)
-            {
-                return NotFound();
-            }
-            else if (retrieveAppUserOnly && !loggedInUserId.Equals(user.Id))
-            {
-                return Unauthorized("Your assigned role means that you cannot search for other Users' data");
+                if (user is null)
+                {
+                    return NotFound();
+                }
+                else if (retrieveAppUserOnly && !loggedInUserId.Equals(user.Id))
+                {
+                    return Unauthorized("Your assigned role means that you cannot search for other Users' data");
+                }
+                else
+                {
+                    user.Password = string.Empty;
+                    user.RefreshToken = string.Empty;
+                    user.RefreshTokenExpiryTime = null;
+                    return Ok(user);
+                }
             }
             else
             {
-                user.Password = string.Empty;
-                user.RefreshToken = string.Empty;
-                user.RefreshTokenExpiryTime = null;
-                return Ok(user);
+                return BadRequest("User Id malformed or not supplied");
             }
         }
 
         /// <summary>
         /// Create a new User and associated Settings
         /// </summary>
-        /// <param name="userRegistrationObject">UserRegistrationObject DTO excluding Id fields</param>
+        /// <param name="userRegistrationModel">UserRegistrationModel DTO excluding Id fields</param>
         /// <returns>New User object</returns>
         /// <response code="201">Returns the newly created User object</response>
         /// <response code="400">Nothing is returned if the object is null</response>
@@ -102,26 +111,26 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("RegisterNewUser")]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterNewUser(UserRegistrationObject userRegistrationObject)
+        public async Task<IActionResult> RegisterNewUser([FromBody] UserRegistrationModel userRegistrationModel)
         {
-            if (userRegistrationObject.User != null && userRegistrationObject.UserSettings != null)
+            if (userRegistrationModel.User != null && userRegistrationModel.UserSettings != null)
             {
                 string passwordHash = string.Empty;
-                if (string.IsNullOrEmpty(userRegistrationObject.User.Password)) // TODO flesh out password complexity requirements
+                if (string.IsNullOrEmpty(userRegistrationModel.User.Password)) // TODO flesh out password complexity requirements
                 {
                     return base.BadRequest("Password was not provided or did not meet complexity requirements");
                 }
                 else
                 {
-                    passwordHash = BCrypt.Net.BCrypt.HashPassword((string)userRegistrationObject.User.Password);
+                    passwordHash = BCrypt.Net.BCrypt.HashPassword((string)userRegistrationModel.User.Password);
 
                     // create a new UserForRegistration object
                     User user = new()
                     {
-                        FirstName = userRegistrationObject.User.FirstName,
-                        LastName = userRegistrationObject.User.LastName,
-                        UserName = userRegistrationObject.User.UserName,
-                        Email = userRegistrationObject.User.Email,
+                        FirstName = userRegistrationModel.User.FirstName,
+                        LastName = userRegistrationModel.User.LastName,
+                        UserName = userRegistrationModel.User.UserName,
+                        Email = userRegistrationModel.User.Email,
                         Password = passwordHash,
                         AssignedRoles = "appUser"
                     };
@@ -132,15 +141,15 @@ namespace Petroliq_API.Controllers
                     UserSettings userSettings = new ()
                     {
                         UserId = user.Id,
-                        CountryName = userRegistrationObject.UserSettings.CountryName,
-                        CurrencyUnit = (CurrencyUnit)Convert.ToInt64(userRegistrationObject.UserSettings.CurrencyUnit),
-                        CapacityUnit = (CapacityUnit)Convert.ToInt64(userRegistrationObject.UserSettings.CapacityUnit),
-                        DistanceUnit = (DistanceUnit)Convert.ToInt64(userRegistrationObject.UserSettings.DistanceUnit),
-                        BaseDiscount = userRegistrationObject.UserSettings.BaseDiscount,
-                        MinimumSpendForDiscount = userRegistrationObject.UserSettings.MinimumSpendForDiscount,
-                        LastPricePerCapacityUnit = userRegistrationObject.UserSettings.LastPricePerCapacityUnit,
-                        AccruedDiscount = userRegistrationObject.UserSettings.AccruedDiscount,
-                        RoundTo = userRegistrationObject.UserSettings.RoundTo
+                        CountryName = userRegistrationModel.UserSettings.CountryName,
+                        CurrencyUnit = (CurrencyUnit)Convert.ToInt64(userRegistrationModel.UserSettings.CurrencyUnit),
+                        CapacityUnit = (CapacityUnit)Convert.ToInt64(userRegistrationModel.UserSettings.CapacityUnit),
+                        DistanceUnit = (DistanceUnit)Convert.ToInt64(userRegistrationModel.UserSettings.DistanceUnit),
+                        BaseDiscount = userRegistrationModel.UserSettings.BaseDiscount,
+                        MinimumSpendForDiscount = userRegistrationModel.UserSettings.MinimumSpendForDiscount,
+                        LastPricePerCapacityUnit = userRegistrationModel.UserSettings.LastPricePerCapacityUnit,
+                        AccruedDiscount = userRegistrationModel.UserSettings.AccruedDiscount,
+                        RoundTo = userRegistrationModel.UserSettings.RoundTo
                     };
 
                     await _userSettingsService.CreateForUserAsync(userSettings);
@@ -149,14 +158,13 @@ namespace Petroliq_API.Controllers
                 }
             }
 
-            return BadRequest();            
+            return BadRequest("User to malformed or not supplied");
         }
 
         /// <summary>
         /// Update an existing User
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="updatedUser"></param>
+        /// <param name="userUpdateModel"></param>
         /// <returns>Updated User object</returns>
         /// <response code="200">Returns the updated User object</response>
         /// <response code="401">Nothing is returned if the user is unauthorised</response>
@@ -168,7 +176,7 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<IActionResult> Update(string id, User updatedUser)
+        public async Task<IActionResult> Update([FromBody] UserUpdateModel userUpdateModel)
         {
             if (HttpContext.User == null)
             {
@@ -177,36 +185,39 @@ namespace Petroliq_API.Controllers
 
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            var user = await _userService.GetAsync(id);
+            if (userUpdateModel != null && !string.IsNullOrEmpty(userUpdateModel.Id) && userUpdateModel.UpdatedUser != null)
+            {
+                var user = await _userService.GetAsync(userUpdateModel.Id);
+                if (user is null)
+                {
+                    return NotFound();
+                }
+                else if (retrieveAppUserOnly && !loggedInUserId.Equals(user.Id))
+                {
+                    return Unauthorized("Your assigned role means that you cannot update other Users' data");
+                }
+                else
+                {
+                    userUpdateModel.UpdatedUser.Id = user.Id;
 
-            if (user is null)
-            {
-                return NotFound();
-            }
-            else if (retrieveAppUserOnly && !loggedInUserId.Equals(user.Id))
-            {
-                return Unauthorized("Your assigned role means that you cannot update other Users' data");
+                    await _userService.UpdateAsync(userUpdateModel.Id, userUpdateModel.UpdatedUser);
+                    userUpdateModel.UpdatedUser.Password = string.Empty;
+                    user.RefreshToken = string.Empty;
+                    user.RefreshTokenExpiryTime = null;
+
+                    return Ok(userUpdateModel.UpdatedUser);
+                }
             }
             else
             {
-                updatedUser.Id = user.Id;
-
-                await _userService.UpdateAsync(id, updatedUser);
-                updatedUser.Password = string.Empty;
-                user.RefreshToken = string.Empty;
-                user.RefreshTokenExpiryTime = null;
-
-                return Ok(updatedUser);
-            }
+                return BadRequest("User to update malformed or not supplied");
+            }            
         }
 
         /// <summary>
         /// Change the Password for the specified User by userId
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="oldPassword"></param>
-        /// <param name="newPassword"></param>
-        /// <returns>Updated User object</returns>
+        /// <param name="passwordChangeModel"></param>
         /// <response code="200">Returns a 200 response without payload if the password was successfully updated</response>
         /// <response code="400">Nothing is returned if required values not provided</response>
         /// <response code="401">Nothing is returned if the Password for the User doesn't match what they've provided</response>
@@ -215,7 +226,7 @@ namespace Petroliq_API.Controllers
         [HttpPost]
         [Route("ChangePassword")]
         [Authorize(Policy = "appUser")]
-        public async Task<IActionResult> ChangePassword(string userId, string oldPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeModel passwordChangeModel)
         {
             if (HttpContext.User == null)
             {
@@ -224,12 +235,12 @@ namespace Petroliq_API.Controllers
 
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword))
+            if (string.IsNullOrEmpty(passwordChangeModel.UserId) || string.IsNullOrEmpty(passwordChangeModel.OldPassword) || string.IsNullOrEmpty(passwordChangeModel.NewPassword))
             {
                 return BadRequest();
             }
 
-            var user = await _userService.GetAsync(userId);
+            var user = await _userService.GetAsync(passwordChangeModel.UserId);
 
             if (user is null)
             {
@@ -237,7 +248,7 @@ namespace Petroliq_API.Controllers
             }
             else
             {
-                bool passwordVerified = BCrypt.Net.BCrypt.Verify(oldPassword, user.Password);
+                bool passwordVerified = BCrypt.Net.BCrypt.Verify(passwordChangeModel.OldPassword, user.Password);
                 if (!string.IsNullOrEmpty(user.Password) && !passwordVerified)
                 {
                     return Unauthorized();
@@ -252,7 +263,7 @@ namespace Petroliq_API.Controllers
                 }
                 else
                 {
-                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(passwordChangeModel.NewPassword);
                     user.Password = passwordHash;
 
                     await _userService.UpdateAsync(user.Id, user);
@@ -277,7 +288,7 @@ namespace Petroliq_API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete([FromBody] string id)
         {
             if (HttpContext.User == null)
             {

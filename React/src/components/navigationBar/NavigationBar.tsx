@@ -31,8 +31,6 @@ import LoginForm from "../loginForm/LoginForm";
 import { AuthService } from "../../dataLayer/services/AuthService";
 import IAuthResult from "../../interfaces/API/IAuthResult";
 import { UserService } from "../../dataLayer/services/UserService";
-import IDecodedJwt from "../../interfaces/API/IDecodedJwt";
-import { jwtDecode } from "jwt-decode";
 
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
 
@@ -74,40 +72,33 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     }, []);
 
     const retrieveUserWithBrowserToken = async () => {
-        const currentBearerToken: string = AuthService.getBrowserAuthToken();
         const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
         const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
         const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
+        const currentUserId: string = AuthService.getBrowserUserId();
 
-        if (currentBearerToken !== null && currentBearerToken !== undefined && currentBearerToken !== "" && currentBearerTokenExpiryDt > new Date()) {
-            console.log(`Retrieving user using cached access token`);
-            const decodedJwt: IDecodedJwt = jwtDecode<IDecodedJwt>(currentBearerToken, { header: false });
+        if (currentBearerTokenExpiryDt > new Date() && loggedInUserId) {
             const authResult: IAuthResult = {
-                jwt: currentBearerToken,
+                userId: loggedInUserId,
                 refreshToken: currentRefreshToken,
                 jwtExpiry: currentBearerTokenExpiry,
-                decodedJwt: decodedJwt,
                 resposeCode: 200,
                 message: "Authorised using browser token"
             };
 
-            console.log(`Retrieving user`);
             await getUser(authResult);
         }
         else { // attempt to refresh access token using refresh token
-            console.log(`Refreshing access token`);
-            const authResult: IAuthResult = await AuthService.refreshToken(currentBearerToken, currentRefreshToken);
-            console.log(authResult);
+            if (currentUserId) {
+                const authResult: IAuthResult = await AuthService.refreshToken(currentUserId, currentRefreshToken);
 
-            if (authResult !== null && (authResult.jwt !== null && authResult.jwt !== undefined && authResult.jwt !== "") && authResult.decodedJwt !== null) {
-                if (authResult.decodedJwt?.Id !== null && authResult.decodedJwt?.Id !== undefined && authResult.decodedJwt?.Id !== "") {
-                    console.log(`Retrieving user`);
+                if (authResult !== null && authResult.userId !== null) {
                     await getUser(authResult);
                 }
-            }
-            else {
-                console.warn("Failed to refresh access token, user needs to log in again");
-                handleLogOut();
+                else {
+                    console.warn("Failed to refresh access token, user needs to log in again");
+                    handleLogOut();
+                }
             }
         }
     };
@@ -144,10 +135,8 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     const logIn = async (email: string, password: string): Promise<void> => {
         const authResult: IAuthResult = await AuthService.login(email, password);
 
-        if (authResult !== null && (authResult.jwt !== null && authResult.jwt !== undefined && authResult.jwt !== "") && authResult.decodedJwt !== null) {
-            if (authResult.decodedJwt?.Id !== null && authResult.decodedJwt?.Id !== undefined && authResult.decodedJwt?.Id !== "") {
-                await getUser(authResult);
-            }
+        if (authResult !== null && authResult.userId !== null) {
+            await getUser(authResult);
         }
         else {
             if (authResult !== null) {
@@ -164,19 +153,17 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     };
 
     const getUser = async (authResult: IAuthResult) => {
-        console.log(authResult);
-        if (authResult.decodedJwt !== undefined && authResult.decodedJwt.Id !== undefined && authResult.jwt !== undefined && authResult.refreshToken !== undefined && authResult.jwtExpiry !== undefined) {
-            const user: IUser = await UserService.getUserById(authResult.jwt, authResult.decodedJwt.Id);
-            console.log(user);
+        if (authResult.userId !== undefined && authResult.refreshToken !== undefined && authResult.jwtExpiry !== undefined) {
+            const user: IUser = await UserService.fetchUserById(authResult.userId);
 
             if (user !== null) {
                 setLoggedIn(true);
 
-                localStorage.setItem("token", authResult.jwt); // TODO replace with HttpOnly cookie
-                localStorage.setItem("refresh", authResult.refreshToken); // TODO replace with HttpOnly cookie
-                localStorage.setItem("tokenExpiry", authResult.jwtExpiry); // TODO replace with HttpOnly cookie
+                localStorage.setItem("refresh", authResult.refreshToken);
+                localStorage.setItem("tokenExpiry", authResult.jwtExpiry);
+                localStorage.setItem("userId", authResult.userId);
 
-                setLoggedInUserId(authResult.decodedJwt?.Id);
+                setLoggedInUserId(authResult.userId);
                 setUserData(user);
                 props.userRetrievedCallback(user);
                 setLoginSuccess(true);
@@ -191,9 +178,9 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         setLoggedIn(false);
         setLoggedInUserId("");
         setUserData({});
-        localStorage.setItem("token", ""); // TODO replace with HttpOnly cookie
-        localStorage.setItem("refresh", ""); // TODO replace with HttpOnly cookie
-        localStorage.setItem("tokenExpiry", ""); // TODO replace with HttpOnly cookie
+        localStorage.setItem("refresh", "");
+        localStorage.setItem("tokenExpiry", "");
+        localStorage.setItem("userId", "");
         props.userRetrievedCallback(null);
 
         handleCloseUserMenu();

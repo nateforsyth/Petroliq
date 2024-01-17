@@ -6,27 +6,42 @@ import settingsJson from "./../../settings.json";
 import IObjectUpdateResult from "../../interfaces/API/IObjectUpdateResult";
 
 export class UserService {
-    public static getUserById = async (bearerToken: string, userId: string): Promise<IUser> => {
+    
+    public static fetchUserById = async (userId: string): Promise<IUser> => {
+        axios.defaults.withCredentials = true;
         let user: IUser = {};
 
-        const userResult: AxiosResponse<any, any> = await axios.get(
-            `${settingsJson.apiBaseUrl}/api/User/GetById/${userId}`,
-            {
-                headers: {
-                    "Accept": "application/json",
-                    "Authorization": `Bearer ${bearerToken}`
+        try {
+            const requestUrl: string = `${settingsJson.apiBaseUrl}/api/User/FetchById`;
+            
+            return await axios.post(
+                requestUrl,
+                {
+                    "Id": `${userId}`,
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    withCredentials: true
                 }
-            }
-        );
-
-        if (userResult !== null && userResult.data !== null) {
-            user = JSON.parse(JSON.stringify(userResult.data));
+            )
+                .then((fetchUserResult: AxiosResponse<any, any>) => {
+                    user = JSON.parse(JSON.stringify(fetchUserResult.data));
+                    return user;
+                })
+                .catch((err: any) => {
+                    console.warn(err);
+                    return user;
+                });
         }
-
-        return user;
+        catch (error: any) {
+            console.warn(error);
+            return user;
+        }
     }
 
-    public static postChangeUserPassword = async (bearerToken: string, userId: string, oldPassword: string, newPassword: string): Promise<IObjectUpdateResult> => {
+    public static postChangeUserPassword = async (userId: string, oldPassword: string, newPassword: string): Promise<IObjectUpdateResult> => {
         console.log(`postChangeUserPassword invoked`);
         let updateResult: IObjectUpdateResult = {};
         try {
@@ -37,9 +52,9 @@ export class UserService {
                 {
                     headers: {
                         "Accept": "application/json",
-                        "Authorization": `Bearer: ${bearerToken}`
                     }
-                }
+                },
+                { withCredentials: true }
             )
                 .then((passwordChangeResult: AxiosResponse<any, any>) => {
                     console.log(passwordChangeResult);

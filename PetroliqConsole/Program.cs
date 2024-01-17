@@ -1,6 +1,5 @@
 ﻿using Petroliq_API.Application;
 using Petroliq_API.Model;
-using SharpCompress.Common;
 using static Petroliq_API.Application.Enums;
 
 namespace PetroliqConsole
@@ -14,7 +13,7 @@ namespace PetroliqConsole
 
         static void Main(string[] args)
         {
-            EnumTester();
+            //EnumTester();
             //PasswordHashTest();
             //PetroliqTest();
 
@@ -24,7 +23,7 @@ namespace PetroliqConsole
 
         static void EnumTester()
         {
-            var currency = Enums.CapacityUnit.Gallon;
+            var currency = CapacityUnit.Gallon;
             var currencySymbol = Convert.ToChar(currency);
             var currencyCode = Convert.ToInt64(currency);
 
@@ -35,7 +34,9 @@ namespace PetroliqConsole
         {
             string password = string.Empty;
             string passwordHash = string.Empty;
+            string passwordHash2 = string.Empty;
             bool passwordVerified = false;
+            bool passwordVerified2 = false;
 
             Console.WriteLine("Enter your password:");
             password = Console.ReadLine();
@@ -43,17 +44,19 @@ namespace PetroliqConsole
             if (!string.IsNullOrEmpty(password))
             {
                 passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+                passwordHash2 = BCrypt.Net.BCrypt.HashPassword(password);
                 passwordVerified = BCrypt.Net.BCrypt.Verify($"{password}", passwordHash);
+                passwordVerified2 = BCrypt.Net.BCrypt.Verify($"{password}", passwordHash2);
             }
 
-            Console.Write($"password: {password}, passwordHash: {passwordHash}, passwordVerified: {passwordVerified}");
+            Console.Write($"password: {password}, passwordHash: {passwordHash}, passwordHash2: {passwordHash2}, passwordVerified: {passwordVerified}, passwordVerified2: {passwordVerified2}");
 
             Console.ReadLine();
         }
 
         static void PetroliqTest()
         {
-            var settings = new UserSettingsForRegistration
+            var settings = new UserSettings
             {
                 CountryName = "New Zealand",
                 CurrencyUnit = CurrencyUnit.Dollar,

@@ -23,9 +23,9 @@ namespace Petroliq
                 authSettings
             );
 
-            builder.Services.AddCors(opt =>
+            builder.Services.AddCors(options =>
             {
-                opt.AddPolicy("_Auth", policy =>
+                options.AddPolicy("_Auth", policy =>
                 {
                     policy
                         .WithOrigins(
@@ -35,7 +35,8 @@ namespace Petroliq
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600));
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600))
+                        .AllowCredentials();
                 });
             });
 
@@ -43,16 +44,25 @@ namespace Petroliq
             string? jwtIssuer = string.Empty;
             string? jwtKey = string.Empty;
             string? jwtAudience = string.Empty;
+            int? cookieTokenValidityMinutes = 5; // default, overridden by app settings
 #if !DEBUG
             // from appsettings.json, for IIS usage
             jwtIssuer = authSettings.GetSection("Issuer").Value; // builder.Configuration["Auth:Issuer"];
             jwtKey = authSettings.GetSection("Key").Value;
             jwtAudience = authSettings.GetSection("Audience").Value;
+            if (int.TryParse(authSettings.GetSection("TokenValidityMinutes").Value, out int cookieValidity))
+            {
+                cookieTokenValidityMinutes = cookieValidity;
+            }
 #else
             // from secrets.json, inaccessible when hosted on IIS
             jwtIssuer = builder.Configuration["Auth:Issuer"];
             jwtKey = builder.Configuration["AuthKey"];
             jwtAudience = builder.Configuration["Auth:Audience"];
+            if (int.TryParse(builder.Configuration["Auth:TokenValidityMinutes"], out int cookieValidity))
+            {
+                cookieTokenValidityMinutes = cookieValidity;
+            }
 #endif
 
             if (!string.IsNullOrEmpty(jwtIssuer) && !string.IsNullOrEmpty(jwtKey) && !string.IsNullOrEmpty(jwtAudience))
@@ -73,6 +83,18 @@ namespace Petroliq
                     };
 
                     options.Authority = jwtIssuer;
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            if (context.Request.Cookies.ContainsKey("X-Access-Token"))
+                            {
+                                context.Token = context.Request.Cookies["X-Access-Token"];
+                            }
+                            return Task.CompletedTask;
+                        },
+                    };
                 });
 
                 builder.Services.AddAuthorization(options =>
@@ -104,7 +126,7 @@ namespace Petroliq
                 {
                     Version = "v1",
                     Title = "Petroliq API",
-                    Description = "An ASP.NET Core Web API interfacing with the Petroliq service",
+                    Description = "An ASP.NET Core Web API interfacing with the Petroliq service. This service is secured using HttpOnly cookies.",
                     TermsOfService = new Uri("https://dreamsof.dev/terms"),
                     Contact = new OpenApiContact
                     {
@@ -120,35 +142,14 @@ namespace Petroliq
 
                 options.UseInlineDefinitionsForEnums();
 
-                var securitySchema = new OpenApiSecurityScheme
-                {
-                    Description = "Using the Authorization header with the Bearer scheme.",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                };
-
-                options.AddSecurityDefinition("Bearer", securitySchema);
-
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    { securitySchema, new[] { "Bearer" } }
-                });
-
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
             #endregion
 
-            builder.Services.AddControllers(opt =>
+            builder.Services.AddControllers(options =>
             {
-                opt.Filters.Add<HttpResponseExceptionFilter>();
+                options.Filters.Add<HttpResponseExceptionFilter>();
             })
                 .AddJsonOptions(
                     options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
@@ -161,6 +162,7 @@ namespace Petroliq
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCookiePolicy();
 
             // Configure the HTTP request pipeline.
             app.UseSwagger();
