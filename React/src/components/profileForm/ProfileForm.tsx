@@ -30,7 +30,7 @@ interface FormInputs {
     AssignedRoles?: string | null;
 }
 
-const LoginSchema: z.ZodSchema<FormInputs> = z.object({
+const PasswordChangeSchema: z.ZodSchema<FormInputs> = z.object({
     FirstName: z.string().min(1, "You must provide a username!"),
     Email: z.string().min(1, "You must provide an email address!"),
     Password: z.string().min(8, "You must provide a password at least 8 characters long!"), // TODO update password validity checking
@@ -91,7 +91,7 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
     };
 
     const methods = useForm<FormInputs>({
-        resolver: zodResolver(LoginSchema),
+        resolver: zodResolver(PasswordChangeSchema),
         defaultValues
     });
 

@@ -1,4 +1,5 @@
 import { SubmitHandler, useForm, FormProvider } from "react-hook-form";
+import { Link } from "react-router-dom";
 import {
     Box,
     Button,
@@ -172,9 +173,11 @@ const LoginForm: React.FC<ILoginFormProps> = (props) => {
                                         Cancel
                                     </Button>
                                     <ButtonGroup aria-label="loading button group">
-                                        <Button disabled={processing || showAuthFailure} type="button" variant="outlined" size="large" disableElevation={true}>
-                                            Register
-                                        </Button>
+                                        <Link className="navLink" to="Register">
+                                            <Button disabled={processing || showAuthFailure} type="button" variant="outlined" size="large" disableElevation={true}  onClick={handleClose}>
+                                                Register
+                                            </Button>
+                                        </Link>
                                         <LoadingButton disabled={processing || showAuthFailure} loading={loading} loadingPosition="start" startIcon={<SaveIcon />} type="submit" variant="contained" size="large" disableElevation={true} color="success">
                                             Login
                                         </LoadingButton>

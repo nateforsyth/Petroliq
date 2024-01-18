@@ -35,6 +35,7 @@ import { UserService } from "../../dataLayer/services/UserService";
 // local storage and cookie imports
 import { UseReadLocalStorage } from "../../hooks/UseReadLocalStorage";
 
+// main menu links
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
 
 const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
@@ -204,7 +205,27 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         navigate("/");
     };
 
-    const settings: ILinkWithCallback[] = [{ label: 'Profile', link: 'Profile', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Account', link: 'Account', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Dashboard', link: 'Dashboard', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn }, { label: 'Login', link: 'Login', isLink: false, callback: handleLoggingIn, hide: loggedIn }, { label: 'Logout', link: 'Logout', isLink: false, callback: handleLogOut, hide: !loggedIn }];
+    // user menu links
+    const userMenuLinks: ILinkWithCallback[] = [
+        {
+            label: 'Profile', link: 'Profile', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn
+        },
+        {
+            label: 'Account', link: 'Account', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn
+        },
+        {
+            label: 'Dashboard', link: 'Dashboard', isLink: true, callback: handleCloseUserMenu, hide: !loggedIn
+        },
+        {
+            label: 'Login', link: 'Login', isLink: false, callback: handleLoggingIn, hide: loggedIn
+        },
+        {
+            label: 'Logout', link: 'Logout', isLink: false, callback: handleLogOut, hide: !loggedIn
+        },
+        {
+            label: 'Register', link: 'Register', isLink: true, callback: handleCloseUserMenu, hide: loggedIn
+        }
+    ];
 
     const avatarAlt: string = loggedIn && userData !== null ?
         `${userData.Email}` :
@@ -347,7 +368,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                     >
                         {userMenuItems}
                         <hr />
-                        {settings.map((setting) => (
+                        {userMenuLinks.map((setting) => (
                             !setting.hide ?
                                 (setting.isLink ?
                                     <Link className="navLink" to={`${setting.link}`} key={setting.link}>
