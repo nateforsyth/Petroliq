@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Avatar, Box, Button, ButtonGroup, Card, CardActions, CardContent, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, TextField, TextFieldProps, Typography } from "@mui/material";
+import { Alert, Avatar, Box, Button, ButtonGroup, Card, CardActions, CardContent, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, TextField, TextFieldProps, Typography } from "@mui/material";
 
 import { Controller, FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { LoadingButton } from "@mui/lab";
@@ -18,6 +18,9 @@ import IUser from "../../interfaces/API/IUser";
 import IUserForRegistration from "../../interfaces/API/IUserForRegistration";
 import IUserSettingsForRegistration from "../../interfaces/API/IUserSettingsForRegistration";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import IObjectAddResult from "../../interfaces/API/IObjectAddResult";
+import { UserForRegistration } from "../model/API/UserForRegistration";
+import { UserSettingsForRegistration } from "../model/API/UserSettingsForRegistration";
 // import { NumberImport } from "./../numberInput/NumberInput";
 
 interface FormSelectProps {
@@ -93,8 +96,13 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
     const [processing, setProcessing] = React.useState<boolean>(false);
 
     // user state
-    const [user, setuser] = React.useState<IUserForRegistration>({});
+    const [user, setUser] = React.useState<IUserForRegistration>({});
     const [userSettings, setUserSettings] = React.useState<IUserSettingsForRegistration>({});
+
+    const [userRegistrationSuccess, setUserRegistrationSuccess] = React.useState<boolean>(false);
+    const [userRegistrationFail, setUserRegistrationFail] = React.useState<boolean>(false);
+    const [userRegisterFailTimeoutSeconds, setUserRegisterFailTimeoutSeconds] = React.useState<number>(5);
+    const [userRegistrationFailMessage, setUserRegistrationFailMessage] = React.useState<string>("");
 
     const [showPassword, setShowPassword] = React.useState<boolean>(false);
     const handleClickShowPassword = () => setShowPassword(!showPassword);
@@ -136,10 +144,58 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
         data.CurrencyUnit = selectedCurrencyUnit;
         data.DistanceUnit = selectedDistanceUnit;
 
-        console.log(data);
+        const user: UserForRegistration = {
+            FirstName: data.FirstName ? data.FirstName : "",
+            LastName: data.LastName ? data.LastName : "",
+            UserName: data.UserName ? data.UserName : "",
+            Email: data.Email ? data.Email : "",
+            Password: data.Password ? data.Password : ""
+        };
+
+        const settings: UserSettingsForRegistration = {
+            CountryName: data.CountryName ? data.CountryName : "",
+            CurrencyUnit: selectedCurrencyUnit,
+            CapacityUnit: selectedCapacityUnit,
+            DistanceUnit: selectedDistanceUnit,
+            BaseDiscount: data.BaseDiscount ? +data.BaseDiscount : 0.06,
+            MinimumSpendForDiscount: data.MinimumSpendForDiscount ? +data.MinimumSpendForDiscount : 40,
+            LastPricePerCapacityUnit: data.LastPricePerCapacityUnit ? +data.LastPricePerCapacityUnit : 0,
+            AccruedDiscount: data.AccruedDiscount ? +data.AccruedDiscount : 0,
+            RoundTo: data.RoundTo ? +data.RoundTo : 2
+        };
+
+        setUser(user);
+        setUserSettings(settings);
+
+        console.log(data, user, settings);
         setProcessing(true);
+
+        await registerNewUser(user, settings);
+
         props.userRegistrationSubmitCallback();
         methods.reset();
+    };
+
+    const registerNewUser = async (userForRegistration: IUserForRegistration, settingsForRegistration: IUserSettingsForRegistration): Promise<void> => {
+        if (userForRegistration !== null && userForRegistration.Email !== "" && userForRegistration.Password !== "" && settingsForRegistration !== null) {
+            const userRegistrationResult: IObjectAddResult = await UserService.postRegisterUser(userForRegistration, settingsForRegistration);
+
+            if (userRegistrationResult !== null) {
+                setUserRegistrationSuccess(true);
+                await new Promise(f => setTimeout(f, 3000));
+                setProcessing(false);
+                console.log(`password successfully changed`);
+            }
+            else {
+                setUserRegistrationFailMessage(`Failed to register you as a new user, check the data you've provided and try again.`);
+                setUserRegistrationFail(true);
+                await new Promise(f => setTimeout(f, (userRegisterFailTimeoutSeconds * 1000)));
+                setUserRegistrationFail(false);
+            }
+        }
+        else {
+            console.warn("Failed to invoke user registration, required data is missing");
+        }
     };
 
     const avatarAlt: string = user && user !== null ?
@@ -250,40 +306,40 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                                 <MenuItem value={109}>Miles, mi</MenuItem>
                                             </Select>
                                         </FormControl>
-                                        <FormTextField 
-                                        name="BaseDiscount" 
-                                        label={`Base discount per ${String.fromCharCode(selectedCapacityUnit)}`} 
-                                        fullWidth={true} 
-                                        disabled={processing} 
-                                        sx={{ marginBottom: "14px", width: "48%" }} 
-                                        inputProps={{ type: 'number' }} 
-                                        InputProps={{
-                                            startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
-                                        }}
-                                        />
-                                    </Box>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
-                                        <FormTextField 
-                                        name="MinimumSpendForDiscount" 
-                                        label="Minimum spend for discount" 
-                                        fullWidth={true} 
-                                        disabled={processing} 
-                                        sx={{ marginBottom: "14px", width: "48%" }} 
-                                        inputProps={{ type: 'number' }} 
+                                        <FormTextField
+                                            name="BaseDiscount"
+                                            label={`Base discount per ${String.fromCharCode(selectedCapacityUnit)}`}
+                                            fullWidth={true}
+                                            disabled={processing}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
                                             InputProps={{
                                                 startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
                                             }}
                                         />
-                                        <FormTextField 
-                                        name="LastPricePerCapacityUnit" 
-                                        label={`Last price per ${String.fromCharCode(selectedCapacityUnit)}`} 
-                                        fullWidth={true} 
-                                        disabled={processing} 
-                                        sx={{ marginBottom: "14px", width: "48%" }} 
-                                        inputProps={{ type: 'number' }} 
-                                        InputProps={{
-                                            startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
-                                        }}
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
+                                        <FormTextField
+                                            name="MinimumSpendForDiscount"
+                                            label="Minimum spend for discount"
+                                            fullWidth={true}
+                                            disabled={processing}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
+                                            }}
+                                        />
+                                        <FormTextField
+                                            name="LastPricePerCapacityUnit"
+                                            label={`Last price per ${String.fromCharCode(selectedCapacityUnit)}`}
+                                            fullWidth={true}
+                                            disabled={processing}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
+                                            }}
                                         />
                                     </Box>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
@@ -320,6 +376,20 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                     Register
                                 </LoadingButton>
                             </CardActions>
+                            {
+                                userRegistrationSuccess ?
+                                    <Alert sx={{ justifyContent: "center" }} severity="success">
+                                        Your account has been successfully registered, you may now log in...
+                                    </Alert> :
+                                    null
+                            }
+                            {
+                                userRegistrationFail ?
+                                    <Alert sx={{ justifyContent: "center" }} severity="error">
+                                        User registration failed: {userRegistrationFailMessage}
+                                    </Alert> :
+                                    null
+                            }
                         </Card>
                     </FormProvider>
                 </Box>
