@@ -1,6 +1,6 @@
 ﻿using static Petroliq_API.Application.Enums;
 
-namespace Petroliq_API.Model
+namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// Intermediary User Settings object specifically for Registration, doesn't include Id fields

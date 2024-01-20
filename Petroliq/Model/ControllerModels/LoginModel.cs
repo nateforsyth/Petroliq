@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Petroliq_API.Model
+namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// Login Model

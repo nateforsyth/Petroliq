@@ -1,4 +1,4 @@
-﻿namespace Petroliq_API.Model
+﻿namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// Fetch User Model

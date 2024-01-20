@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
+using Petroliq_API.Model.ControllerModels;
 using Petroliq_API.Services;
 
 namespace Petroliq_API.Controllers
@@ -34,29 +35,34 @@ namespace Petroliq_API.Controllers
         /// <summary>
         /// Get Settings object for the specified User
         /// </summary>
-        /// <param name="userIdStr"></param>
-        /// <param name="useUserId"></param>
+        /// <param name="fetchUserSettingsModel"></param>
         /// <returns>The Settings object for the specified User</returns>
         /// <response code="200">Returns the User Settings object</response>
         /// <response code="401">Nothing is returned if the user is unauthorised</response>
         /// <response code="404">Nothing is returned if the object is null</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        [HttpGet("{userIdStr:length(24)}/{useUserId}")]
+        [HttpPost]
+        [Route("FetchById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<ActionResult<UserSettings>> GetSettingsForUser(string userIdStr, bool useUserId)
+        public async Task<ActionResult<UserSettings>> FetchById([FromBody] FetchUserSettingsModel fetchUserSettingsModel)
         {
             if (HttpContext.User == null)
             {
                 return StatusCode(500, "No User in Context");
             }
 
+            if (fetchUserSettingsModel == null || fetchUserSettingsModel.Id == null)
+            {
+                return BadRequest("FetchUserSettingsModel malformed or missing required data");
+            }
+
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            var userSettings = await _userSettingsService.GetForUserAsync(userIdStr, useUserId);
+            var userSettings = await _userSettingsService.GetForUserAsync(fetchUserSettingsModel.Id, fetchUserSettingsModel.UseUserId);
 
             if (userSettings is null)
             {
@@ -75,30 +81,33 @@ namespace Petroliq_API.Controllers
         /// <summary>
         /// Update an existing User Settings object for the specific User
         /// </summary>
-        /// <param name="idStr"></param>
-        /// <param name="useUserId"></param>
-        /// <param name="updatedUserSettings"></param>
+        /// <param name="updatedUserSettingsModel"></param>
         /// <returns>Updated User Settings object</returns>
         /// <response code="200">Returns the updated User Settings object</response>
         /// <response code="401">Nothing is returned if the user is unauthorised</response>
         /// <response code="404">Returns 404 if a User Settings object couldn't be found for the User</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        [HttpPut("{idStr:length(24)}/{useUserId}")]
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<IActionResult> Update(string idStr, bool useUserId, UserSettings updatedUserSettings)
+        public async Task<IActionResult> Update([FromBody] UpdateUserSettingsModel updatedUserSettingsModel)
         {
             if (HttpContext.User == null)
             {
                 return StatusCode(500, "No User in Context");
             }
 
+            if (updatedUserSettingsModel == null || updatedUserSettingsModel.Id == null || updatedUserSettingsModel.UpdatedUserSettings == null)
+            {
+                return BadRequest("UpdateUserSettingsModel malformed or missing required data");
+            }
+
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            var userSettings = await _userSettingsService.GetForUserAsync(idStr, useUserId);
+            var userSettings = await _userSettingsService.GetForUserAsync(updatedUserSettingsModel.Id, updatedUserSettingsModel.UseUserId);
 
             if (userSettings is null)
             {
@@ -106,15 +115,16 @@ namespace Petroliq_API.Controllers
             }
             else if (retrieveAppUserOnly && !loggedInUserId.Equals(userSettings.UserId))
             {
-                return Unauthorized("Your assigned role means that you cannot search for other Users' data");
+                return Unauthorized("Your assigned role means that you cannot update other Users' data");
             }
             else
             {
-                updatedUserSettings.Id = userSettings.Id;
+                updatedUserSettingsModel.UpdatedUserSettings.Id = userSettings.Id;
+                updatedUserSettingsModel.UpdatedUserSettings.UserId = userSettings.UserId;
 
-                await _userSettingsService.UpdateForUserAsync(idStr, updatedUserSettings);
+                await _userSettingsService.UpdateForUserAsync(updatedUserSettingsModel.Id, updatedUserSettingsModel.UpdatedUserSettings);
 
-                return Ok(updatedUserSettings);
+                return Ok(updatedUserSettingsModel.UpdatedUserSettings);
             }
         }
     }

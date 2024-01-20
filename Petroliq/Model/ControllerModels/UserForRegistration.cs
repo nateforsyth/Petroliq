@@ -1,4 +1,4 @@
-﻿namespace Petroliq_API.Model
+﻿namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// Intermediary User object specifically for Registration, doesn't include Id fields

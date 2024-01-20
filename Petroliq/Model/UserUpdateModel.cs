@@ -14,5 +14,10 @@
         /// Updated User
         /// </summary>
         public User? UpdatedUser { get; set; }
+
+        /// <summary>
+        /// Updated User Settings
+        /// </summary>
+        public UserSettings? UpdatedUserSettings { get; set; }
     }
 }

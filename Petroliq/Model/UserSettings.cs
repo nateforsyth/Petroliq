@@ -31,9 +31,59 @@ namespace Petroliq_API.Model
 
         public int RoundTo { get; set; }
 
-        public override string ToString()
+        public static List<string> ValidateFieldUpdates(UserSettings original, UserSettings updated)
         {
-            return $"{CapacityUnit}/{Convert.ToChar((int)CapacityUnit)}, {DistanceUnit}/{Convert.ToChar((int)DistanceUnit)}";
+            List<string> updatedFields = [];
+
+            if (original != null && updated != null)
+            {
+                if (!string.IsNullOrEmpty(original.CountryName) && !original.CountryName.Equals(updated.CountryName))
+                {
+                    updatedFields.Add("CountryName");
+                }
+
+                if (!original.CurrencyUnit.Equals(updated.CurrencyUnit))
+                {
+                    updatedFields.Add("CurrencyUnit");
+                }
+
+                if (!original.CapacityUnit.Equals(updated.CapacityUnit))
+                {
+                    updatedFields.Add("CapacityUnit");
+                }
+
+                if (!original.DistanceUnit.Equals(updated.DistanceUnit))
+                {
+                    updatedFields.Add("DistanceUnit");
+                }
+
+                if (!original.BaseDiscount.Equals(updated.BaseDiscount))
+                {
+                    updatedFields.Add("BaseDiscount");
+                }
+
+                if (!original.MinimumSpendForDiscount.Equals(updated.MinimumSpendForDiscount))
+                {
+                    updatedFields.Add("MinimumSpendForDiscount");
+                }
+
+                if (!original.LastPricePerCapacityUnit.Equals(updated.LastPricePerCapacityUnit))
+                {
+                    updatedFields.Add("LastPricePerCapacityUnit");
+                }
+
+                if (!original.AccruedDiscount.Equals(updated.AccruedDiscount))
+                {
+                    updatedFields.Add("AccruedDiscount");
+                }
+
+                if (!original.RoundTo.Equals(updated.RoundTo))
+                {
+                    updatedFields.Add("RoundTo");
+                }
+            }
+
+            return updatedFields;
         }
     }
 #pragma warning restore CS1591

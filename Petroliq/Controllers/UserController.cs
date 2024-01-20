@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
+using Petroliq_API.Model.ControllerModels;
 using Petroliq_API.Services;
 using static Petroliq_API.Application.Enums;
 
@@ -56,7 +57,6 @@ namespace Petroliq_API.Controllers
         /// <response code="401">Nothing is returned if the user is unauthorised or trying to access a record they're not allowed to access</response>
         /// <response code="404">Nothing is returned if the object is null</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        //[HttpGet("GetById/{id:length(24)}")]
         [HttpPost]
         [Route("FetchById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -170,7 +170,7 @@ namespace Petroliq_API.Controllers
         /// <response code="401">Nothing is returned if the user is unauthorised</response>
         /// <response code="404">Returns 404 if a User object couldn't be found for the User</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        [HttpPut("{id:length(24)}")]
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -185,10 +185,12 @@ namespace Petroliq_API.Controllers
 
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            if (userUpdateModel != null && !string.IsNullOrEmpty(userUpdateModel.Id) && userUpdateModel.UpdatedUser != null)
+            if (userUpdateModel != null && !string.IsNullOrEmpty(userUpdateModel.Id) && userUpdateModel.UpdatedUser != null && userUpdateModel.UpdatedUserSettings != null)
             {
-                var user = await _userService.GetAsync(userUpdateModel.Id);
-                if (user is null)
+                User? user = await _userService.GetAsync(userUpdateModel.Id);
+                UserSettings? userSettings = await _userSettingsService.GetForUserAsync(userUpdateModel.Id, true);
+
+                if (user == null || userSettings == null)
                 {
                     return NotFound();
                 }
@@ -199,18 +201,36 @@ namespace Petroliq_API.Controllers
                 else
                 {
                     userUpdateModel.UpdatedUser.Id = user.Id;
+                    userUpdateModel.UpdatedUser.Password = user.Password;
+                    userUpdateModel.UpdatedUser.AssignedRoles = user.AssignedRoles;
+                    userUpdateModel.UpdatedUser.RefreshToken = user.RefreshToken;
+                    userUpdateModel.UpdatedUser.RefreshTokenExpiryTime = user.RefreshTokenExpiryTime;
 
                     await _userService.UpdateAsync(userUpdateModel.Id, userUpdateModel.UpdatedUser);
-                    userUpdateModel.UpdatedUser.Password = string.Empty;
-                    user.RefreshToken = string.Empty;
-                    user.RefreshTokenExpiryTime = null;
+                    List<string> updatedUserFields = Model.User.ValidateFieldUpdates(user, userUpdateModel.UpdatedUser);
 
-                    return Ok(userUpdateModel.UpdatedUser);
+                    userUpdateModel.UpdatedUserSettings.Id = userSettings.Id;
+                    userUpdateModel.UpdatedUserSettings.UserId = userSettings.UserId;
+
+                    await _userSettingsService.UpdateForUserAsync(userUpdateModel.Id, userUpdateModel.UpdatedUserSettings);
+                    List<string> updatedUserSettingsFields = UserSettings.ValidateFieldUpdates(userSettings, userUpdateModel.UpdatedUserSettings);
+
+                    userUpdateModel.UpdatedUser.Password = string.Empty;
+                    userUpdateModel.UpdatedUser.RefreshToken = string.Empty;
+                    userUpdateModel.UpdatedUser.RefreshTokenExpiryTime = null;
+
+                    return Ok(new
+                    {
+                        User = userUpdateModel.UpdatedUser,
+                        UpdatedUserFields = updatedUserFields.ToArray(),
+                        UserSettings = userUpdateModel.UpdatedUserSettings,
+                        UpdatedUserSettingsFields = updatedUserSettingsFields
+                    });
                 }
             }
             else
             {
-                return BadRequest("User to update malformed or not supplied");
+                return BadRequest("User or UserSettings to update malformed or not provided");
             }            
         }
 
@@ -268,7 +288,16 @@ namespace Petroliq_API.Controllers
 
                     await _userService.UpdateAsync(user.Id, user);
 
-                    return Ok();
+                    user.Password = string.Empty;
+                    user.RefreshToken = string.Empty;
+                    user.RefreshTokenExpiryTime = null;
+                    string[] updatedFields = ["Password"];
+
+                    return Ok(new
+                    {
+                        User = user,
+                        UpdatedUserFields = updatedFields
+                    });
                 }
             }
         }
@@ -276,19 +305,19 @@ namespace Petroliq_API.Controllers
         /// <summary>
         /// Delete an existing User, including their Settings
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="deleteUserModel"></param>
         /// <returns>No Content</returns>
         /// <response code="204">Returns nothing upon User and Settings object deletion</response>
         /// <response code="401">Nothing is returned if the user is unauthorised</response>
         /// <response code="404">Returns 404 if a User Settings object couldn't be found for the User</response>
         /// <response code="500">Nothing is returned if there is no User in the context (should be impossible)</response>
-        [HttpDelete("{id:length(24)}")]
+        [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "appUser")]
-        public async Task<IActionResult> Delete([FromBody] string id)
+        public async Task<IActionResult> Delete([FromBody] DeleteUserModel deleteUserModel)
         {
             if (HttpContext.User == null)
             {
@@ -297,7 +326,12 @@ namespace Petroliq_API.Controllers
 
             (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
 
-            var user = await _userService.GetAsync(id);
+            if (deleteUserModel == null || deleteUserModel.Id == null)
+            {
+                return BadRequest("DeleteUserModel malformed or missing required data");
+            }
+
+            var user = await _userService.GetAsync(deleteUserModel.Id);
 
             if (user is not null && user.Id is not null)
             {
@@ -314,10 +348,10 @@ namespace Petroliq_API.Controllers
                 }
 
                 // attempt to delete this User's Settings object
-                await _userSettingsService.RemoveForUserAsync(id);
+                await _userSettingsService.RemoveForUserAsync(deleteUserModel.Id);
 
                 // attempt to delete this User
-                await _userService.RemoveAsync(id);
+                await _userService.RemoveAsync(deleteUserModel.Id);
             }
             else
             {

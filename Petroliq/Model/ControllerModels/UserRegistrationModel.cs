@@ -1,4 +1,4 @@
-﻿namespace Petroliq_API.Model
+﻿namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// UserRegistrationModel model, used to create new objects from a single object
