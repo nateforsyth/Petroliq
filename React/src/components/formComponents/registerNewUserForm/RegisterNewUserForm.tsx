@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Alert, Avatar, Box, Button, ButtonGroup, Card, CardActions, CardContent, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, TextField, TextFieldProps, Typography } from "@mui/material";
+import { Alert, Avatar, Box, Button, ButtonGroup, Card, CardActions, CardContent, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, TextField, TextFieldProps, Typography, useMediaQuery, useTheme } from "@mui/material";
 
 import { Controller, FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { LoadingButton } from "@mui/lab";
@@ -7,20 +7,20 @@ import SaveIcon from '@mui/icons-material/Save';
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import PasswordChangeForm from "../passwordChangeForm/PasswordChangeForm";
-import { UserService } from "../../dataLayer/services/UserService";
-import IObjectUpdateResult from "../../interfaces/API/IObjectUpdateResult";
-import { User } from "../model/API/User";
-import { AuthService } from "../../dataLayer/services/AuthService";
-import { AppHelpers } from "../../utilities/AppHelpers";
-import IAuthResult from "../../interfaces/API/IAuthResult";
+import { UserService } from "../../../dataLayer/services/UserService";
+import { User } from "../../model/API/User";
+import { AuthService } from "../../../dataLayer/services/AuthService";
+import { AppHelpers } from "../../../utilities/AppHelpers";
+import IAuthResult from "../../model/interfaces/API/IAuthResult";
 import IRegisterNewUserFormProps from "./IRegisterNewUserFormProps";
-import IUser from "../../interfaces/API/IUser";
-import IUserForRegistration from "../../interfaces/API/IUserForRegistration";
-import IUserSettingsForRegistration from "../../interfaces/API/IUserSettingsForRegistration";
+import IUser from "../../model/interfaces/API/IUser";
+import IUserForRegistration from "../../model/interfaces/API/IUserForRegistration";
+import IUserSettingsForRegistration from "../../model/interfaces/API/IUserSettingsForRegistration";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import IObjectAddResult from "../../interfaces/API/IObjectAddResult";
-import { UserForRegistration } from "../model/API/UserForRegistration";
-import { UserSettingsForRegistration } from "../model/API/UserSettingsForRegistration";
+import IObjectAddResult from "../../model/interfaces/API/IObjectAddResult";
+import { UserForRegistration } from "../../model/API/UserForRegistration";
+import { UserSettingsForRegistration } from "../../model/API/UserSettingsForRegistration";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 // import { NumberImport } from "./../numberInput/NumberInput";
 
 interface FormSelectProps {
@@ -53,9 +53,6 @@ const RegisterUserSchema: z.ZodSchema<FormInputs> = z.object({
     Email: z.string().includes("@").min(1, "You must provide an email address!"),
     Password: z.string().min(8, "You must provide a password at least 8 characters long!"),
     CountryName: z.string().min(1, "You must provide the country where you reside!"),
-    // CurrencyUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }), // CurrencyUnit enum
-    // CapacityUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }), // CapacityUnit enum
-    // DistanceUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }), // DistanceUnit enum
     BaseDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
     MinimumSpendForDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
     LastPricePerCapacityUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
@@ -92,6 +89,10 @@ const FormTextFieldComp: React.FC<FormSelectProps & TextFieldProps> = ({
 const FormTextField = React.memo(FormTextFieldComp);
 
 const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = (props) => {
+    const navigate: NavigateFunction = useNavigate();
+    
+    const theme = useTheme();
+    const wide = useMediaQuery(theme.breakpoints.up('lg'));
 
     const [processing, setProcessing] = React.useState<boolean>(false);
 
@@ -108,6 +109,7 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
     const handleMouseDownPassword = () => setShowPassword(!showPassword);
 
+    // user settings state
     const [selectedCapacityUnit, setSelectedCapacityUnit] = React.useState<number>(8467);
     const [selectedCurrencyUnit, setSelectedCurrencyUnit] = React.useState<number>(36);
     const [selectedDistanceUnit, setSelectedDistanceUnit] = React.useState<number>(107);
@@ -137,13 +139,13 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
         }
     }, [props.resetForm]);
 
+    const onInvalid = (error: any) => {
+        console.log(`onInvalid`, error);
+    };
+
     const onSubmit: SubmitHandler<FormInputs> = async (
         data: FormInputs
     ) => {
-        data.CapacityUnit = selectedCapacityUnit;
-        data.CurrencyUnit = selectedCurrencyUnit;
-        data.DistanceUnit = selectedDistanceUnit;
-
         const user: UserForRegistration = {
             FirstName: data.FirstName ? data.FirstName : "",
             LastName: data.LastName ? data.LastName : "",
@@ -181,16 +183,22 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
             const userRegistrationResult: IObjectAddResult = await UserService.postRegisterUser(userForRegistration, settingsForRegistration);
 
             if (userRegistrationResult !== null) {
-                setUserRegistrationSuccess(true);
-                await new Promise(f => setTimeout(f, 3000));
-                setProcessing(false);
-                console.log(`password successfully changed`);
+                await new Promise(f => {
+                    setUserRegistrationSuccess(true);
+                    setTimeout(f, 3000);
+                    setProcessing(false);
+                    console.log(`new user successfully registered`);
+    
+                    navigate("/");
+                });
             }
             else {
-                setUserRegistrationFailMessage(`Failed to register you as a new user, check the data you've provided and try again.`);
-                setUserRegistrationFail(true);
-                await new Promise(f => setTimeout(f, (userRegisterFailTimeoutSeconds * 1000)));
-                setUserRegistrationFail(false);
+                await new Promise(f => {
+                    setUserRegistrationFailMessage(`Failed to register you as a new user, check the data you've provided and try again.`);
+                    setUserRegistrationFail(true);
+                    setTimeout(f, (userRegisterFailTimeoutSeconds * 1000));
+                    setUserRegistrationFail(false);
+                });
             }
         }
         else {
@@ -226,15 +234,22 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
         setSelectedDistanceUnit(event.target.value);
     };
 
+    const handleCancel = () => {
+        navigate("/");
+    };
+    
+    const elementWidth: string = wide ? "50%" : "initial";
+    const flexDirection: string = wide ? "row" : "column";
+
     let htmlElement: JSX.Element =
         <div>
             <Box className="register-user-form-box" sx={{ width: "100%" }}>
                 <Avatar sx={{ width: 135, height: 135, margin: "auto", marginBottom: "16px", fontSize: "90px" }} alt={avatarAlt} src="/static/images/avatar/2.jpg" />
                 <Box className="card-form-box">
                     <FormProvider {...methods}>
-                        <Card component="form" onSubmit={methods.handleSubmit(onSubmit)} variant="outlined" sx={{ display: 'flex', flexDirection: 'column', justifyContent: "space-between", padding: "14px" }}>
-                            <CardContent sx={{ display: 'flex', flexDirection: 'row', width: "100%" }}>
-                                <CardContent sx={{ display: 'flex', flexDirection: 'column', width: "45%" }}>
+                        <Card component="form" onSubmit={methods.handleSubmit(onSubmit, onInvalid)} variant="outlined" sx={{ display: 'flex', flexDirection: 'column', justifyContent: "space-between", padding: "14px" }}>
+                            <CardContent sx={{ display: 'flex', flexDirection: flexDirection }}>
+                                <CardContent sx={{ display: 'flex', flexDirection: 'column', width: elementWidth }}>
                                     <Typography sx={{ marginBottom: "16px", marginTop: "16px" }} variant="h5" color="textPrimary" align="center">
                                         <UserSettingsHeader />
                                     </Typography>
@@ -256,13 +271,13 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                         )
                                     }} disabled={processing} required={true} />
                                 </CardContent>
-                                <CardContent sx={{ display: 'flex', flexDirection: 'column', width: "45%" }}>
+                                <CardContent sx={{ display: 'flex', flexDirection: 'column', width: elementWidth }}>
                                     <Typography sx={{ marginBottom: "16px", marginTop: "16px" }} variant="h5" color="textPrimary" align="center">
                                         <AppSettingsHeader />
                                     </Typography>
                                     <FormTextField name="CountryName" label="Country Name" fullWidth={true} disabled={processing} sx={{ marginBottom: "14px" }} />
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
-                                        <FormControl fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
+                                        <FormControl id="capacityUnit" fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
                                             <InputLabel id="capacityUnitLabel">Capacity Unit</InputLabel>
                                             <Select
                                                 labelId="capacityUnitSelectLabel"
@@ -275,7 +290,7 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                                 <MenuItem value={103}>Gallon, g</MenuItem>
                                             </Select>
                                         </FormControl>
-                                        <FormControl fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
+                                        <FormControl id="currencyUnit" fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
                                             <InputLabel id="currencyUnitLabel">Currency Unit</InputLabel>
                                             <Select
                                                 labelId="currencyUnitSelectLabel"
@@ -293,7 +308,7 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                         </FormControl>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
-                                        <FormControl fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
+                                        <FormControl id="distanceUnit" fullWidth sx={{ marginBottom: "14px", width: "48%" }}>
                                             <InputLabel id="distanceUnitLabel">Distance Unit</InputLabel>
                                             <Select
                                                 labelId="distanceUnitSelectLabel"
@@ -368,8 +383,8 @@ const RegisterNewUserForm: React.FunctionComponent<IRegisterNewUserFormProps> = 
                                     </Box>
                                 </CardContent>
                             </CardContent>
-                            <CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: "space-between", padding: "14px" }}>
-                                <Button type="button" variant="outlined" size="large" disableElevation={true} color="info" disabled={false}>
+                            <CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: "space-between", padding: "14px 28px" }}>
+                                <Button type="button" variant="outlined" size="large" disableElevation={true} color="info" disabled={false} onClick={handleCancel}>
                                     Cancel
                                 </Button>
                                 <LoadingButton loading={processing} loadingPosition="start" startIcon={<SaveIcon />} type="submit" variant="contained" size="large" disableElevation={true} color="success" disabled={false}>

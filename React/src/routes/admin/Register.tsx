@@ -1,6 +1,6 @@
 import * as React from "react";
 import IRegisterProps from "./_adminProps/IRegisterProps";
-import RegisterNewUserForm from "../../components/registerNewUserForm/RegisterNewUserForm";
+import RegisterNewUserForm from "../../components/formComponents/registerNewUserForm/RegisterNewUserForm";
 
 const Register: React.FunctionComponent<IRegisterProps> = (props) => {
     const [resetForm, setResetForm] = React.useState<boolean>(false);

@@ -1,4 +1,4 @@
-import ILinkWithCallback from "../../interfaces/ILinkWithCallback";
+import ILinkWithCallback from "./interfaces/ILinkWithCallback";
 import { Link } from "./Link";
 
 export class LinkWithCallback extends Link implements ILinkWithCallback {

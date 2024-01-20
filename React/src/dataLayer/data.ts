@@ -1,5 +1,5 @@
 import moment from "moment";
-import IFill from "../interfaces/IFill";
+import IFill from "../components/model/interfaces/IFill";
 
 let fills: IFill[] = [
     {

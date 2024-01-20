@@ -1,14 +1,10 @@
 import * as React from "react";
 
-// MUI imports
-import Box from "@mui/material/Box";
-import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
-
 import { Link, Outlet } from "react-router-dom";
 import getFills from "../../dataLayer/data"
-import IFill from "../../interfaces/IFill";
+import IFill from "../../components/model/interfaces/IFill";
 
-import FillForm from "../../components/fillForm/fillForm";
+import FillForm from "../../components/formComponents/fillForm/fillForm";
 
 import './Fills.css';
 import IFillsProps from "./_fillsProps/IFillsProps";

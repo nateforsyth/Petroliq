@@ -1,4 +1,4 @@
-import IUserForRegistration from "../../../interfaces/API/IUserForRegistration";
+import IUserForRegistration from "../interfaces/API/IUserForRegistration";
 
 export class UserForRegistration implements IUserForRegistration {
     FirstName?: string;

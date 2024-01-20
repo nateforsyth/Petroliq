@@ -20,20 +20,21 @@ import LocalGasStationOutlinedIcon from '@mui/icons-material/LocalGasStationOutl
 
 // App imports
 import INavigationBarProps from "./INavigationBarProps";
-import ILink from "../../interfaces/ILink";
-import ILinkWithCallback from "../../interfaces/ILinkWithCallback";
+import ILink from "../model/interfaces/ILink";
+import ILinkWithCallback from "../model/interfaces/ILinkWithCallback";
 import "./NavigationBar.css";
-import IUser from "../../interfaces/API/IUser";
+import IUser from "../model/interfaces/API/IUser";
 import { useNavigate } from "react-router-dom";
 
 // Config imports
-import LoginForm from "../loginForm/LoginForm";
+import LoginForm from "../formComponents/loginForm/LoginForm";
 import { AuthService } from "../../dataLayer/services/AuthService";
-import IAuthResult from "../../interfaces/API/IAuthResult";
+import IAuthResult from "../model/interfaces/API/IAuthResult";
 import { UserService } from "../../dataLayer/services/UserService";
 
 // local storage and cookie imports
 import { UseReadLocalStorage } from "../../hooks/UseReadLocalStorage";
+import IUserSettings from "../model/interfaces/API/IUserSettings";
 
 // main menu links
 const pages: ILink[] = [{ label: 'New Fill', link: 'NewFill' }, { label: 'Fills', link: 'Fills' }, { label: 'Graphs', link: 'Graphs' }];
@@ -45,12 +46,12 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
 
     // canvas state
     const [loggingIn, setLoggingIn] = React.useState<boolean>(false);
-    const [registering, setRegistering] = React.useState<boolean>(false);
 
     // auth state
     const [loggedIn, setLoggedIn] = React.useState<boolean>(false);
     const [loggedInUserId, setLoggedInUserId] = React.useState<string>("");
     const [userData, setUserData] = React.useState<IUser>({});
+    const [userSettingsData, setUserSettingsData] = React.useState<IUserSettings>({});
 
     // child component state for auth
     const [loginSuccess, setLoginSuccess] = React.useState<boolean>(false);
@@ -125,10 +126,6 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         handleCloseUserMenu();
     };
 
-    const handleRegistering = () => {
-        setRegistering(true);
-    };
-
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
     };
@@ -156,37 +153,49 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
             await getUser(authResult);
         }
         else {
-            if (authResult !== null) {
-                setAuthFailMessage(`${authResult.message}, you must wait ${authFailTimeoutSeconds} seconds before trying again, or cancel.`); // TODO implement account lock if login attemps exceed some specified threshold
-            }
+            await new Promise(f => {
+                if (authResult !== null) {
+                    setAuthFailMessage(`${authResult.message}, you must wait ${authFailTimeoutSeconds} seconds before trying again, or cancel.`); // TODO implement account lock if login attemps exceed some specified threshold
+                }
 
-            setLoginFail(true);
+                setLoginFail(true);
+                setTimeout(f, (authFailTimeoutSeconds * 1000));
 
-            await new Promise(f => setTimeout(f, (authFailTimeoutSeconds * 1000)));
-
-            setAuthFailTimeoutSeconds(authFailTimeoutSeconds * authFailTimeoutSeconds);
-            setLoginFail(false);
+                setAuthFailTimeoutSeconds(authFailTimeoutSeconds * authFailTimeoutSeconds);
+                setLoginFail(false);
+            });
         }
     };
 
     const getUser = async (authResult: IAuthResult) => {
         if (authResult.userId !== undefined && authResult.refreshToken !== undefined && authResult.jwtExpiry !== undefined) {
-            const user: IUser = await UserService.fetchUserById(authResult.userId);
+            const fetchedUser: IUser = await UserService.fetchUserById(authResult.userId);
+            const fetchedUserId: string | undefined = fetchedUser?.Id;
+            const authRefreshToken: string | undefined = authResult.refreshToken;
+            const authJwtExpiry: string | undefined = authResult.jwtExpiry;
 
-            if (user !== null) {
-                setLoggedIn(true);
+            if (fetchedUser !== null && authResult !== null && fetchedUserId !== undefined && authRefreshToken !== undefined && authJwtExpiry !== undefined) {
+                await new Promise(async f => {
+                    const userSettings: IUserSettings = await UserService.fetchUserSettingsByUserId(fetchedUserId);
+                    
+                    setLoggedIn(true);
 
-                localStorage.setItem("refresh", authResult.refreshToken);
-                localStorage.setItem("tokenExpiry", authResult.jwtExpiry);
-                localStorage.setItem("userId", authResult.userId);
+                    localStorage.setItem("refresh", authRefreshToken);
+                    localStorage.setItem("tokenExpiry", authJwtExpiry);
+                    localStorage.setItem("userId", fetchedUserId);
 
-                setLoggedInUserId(authResult.userId);
-                setUserData(user);
-                props.userRetrievedCallback(user);
-                setLoginSuccess(true);
+                    setLoggedInUserId(fetchedUserId);
+                    setUserData(fetchedUser);
+                    setUserSettingsData(userSettings);
 
-                await new Promise(f => setTimeout(f, authSuccessTimeoutSeconds * 1000));
-                setLoggingIn(false);
+                    props.userRetrievedCallback(fetchedUser, userSettings);
+
+                    setLoginSuccess(true);
+                    
+                    setTimeout(f, authSuccessTimeoutSeconds * 1000);
+
+                    setLoggingIn(false);
+                });
             }
         }
     };
@@ -195,7 +204,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         setLoggedIn(false);
         setLoggedInUserId("");
         setUserData({});
-        props.userRetrievedCallback(null);
+        props.userRetrievedCallback(null, null);
         handleCloseUserMenu();
 
         localStorage.setItem("userId", "");
@@ -237,7 +246,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                 <Typography textAlign="center">Welcome <b>{userData.FirstName}</b></Typography>
             </MenuItem>
             <MenuItem key="userId">
-                <Typography textAlign="center">Id: {userId_localStorage}</Typography>
+                <Typography textAlign="center">Id: {userId_localStorage ?? userData.Id}</Typography>
             </MenuItem>
         </div> :
         <div>
@@ -253,7 +262,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     let htmlElement: JSX.Element = <AppBar position="static">
         {loginForm}
         <Container maxWidth="lg">
-            <Toolbar disableGutters>
+            <Toolbar disableGutters sx={{ position: "sticky" }}>
                 <LocalGasStationOutlinedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
                 <Link className="navLink" to="Home">
                     <Typography

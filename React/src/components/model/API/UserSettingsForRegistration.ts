@@ -1,4 +1,4 @@
-import IUserSettingsForRegistration from "../../../interfaces/API/IUserSettingsForRegistration";
+import IUserSettingsForRegistration from "../interfaces/API/IUserSettingsForRegistration";
 
 export class UserSettingsForRegistration implements IUserSettingsForRegistration {
     CountryName?: string;

@@ -13,22 +13,21 @@ import Container from "@mui/material/Container";
 import "./AppContainer.css"
 import Home from "../../routes/Home";
 import { User } from "../model/API/User";
+import { UserSettings } from "../model/API/UserSettings";
 
-type ContextType = { currentUser: User | null, resetUser: any };
+type ContextType = { currentUser: User | null, currentUserSettings: UserSettings | null, userRetrievedCallback: any };
 
 const AppContainer: React.FunctionComponent<IAppContainerProps> = (props) => {
 
     const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+    const [currentUserSettings, setCurrentUserSettings] = React.useState<UserSettings | null>(null);
 
     const routePathName: string = useLocation().pathname;
 
-    const userRetrievedCallback = (user: User) => {
+    const userRetrievedCallback = (user: User, userSettings: UserSettings) => {
+        console.log(`userRetrievedCallback invoked`, user, userSettings);
         setCurrentUser(user);
-    };
-
-    const resetUser = () => {
-        console.log(`reset user invoked`);
-        setCurrentUser(null);
+        setCurrentUserSettings(userSettings);
     };
 
     let htmlElement: JSX.Element =
@@ -40,7 +39,7 @@ const AppContainer: React.FunctionComponent<IAppContainerProps> = (props) => {
                 <div className="contentWrapper">
                     {routePathName === "/" ?
                         <Home /> :
-                        <Outlet context={{currentUser}} />}
+                        <Outlet context={{currentUser, currentUserSettings, userRetrievedCallback}} />}
                 </div>
             </Container>
         </div>;

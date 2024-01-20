@@ -2,8 +2,8 @@ import axios, { AxiosResponse } from "axios";
 
 // Config imports
 import settingsJson from "./../../settings.json";
-import IDecodedJwt from "../../interfaces/API/IDecodedJwt";
-import IAuthResult from "../../interfaces/API/IAuthResult";
+import IDecodedJwt from "../../components/model/interfaces/API/IDecodedJwt";
+import IAuthResult from "../../components/model/interfaces/API/IAuthResult";
 
 export class AuthService {
 
@@ -125,7 +125,6 @@ export class AuthService {
             )
                 .then((jwtResult: AxiosResponse<any, any>) => {
                     if (jwtResult !== null && jwtResult.data !== null) {
-                        console.log(jwtResult.data);
                         userId = jwtResult.data.UserId;
                         refreshToken = jwtResult.data.RefreshToken;
                         tokenExpiry = jwtResult.data.Expiration;

@@ -1,18 +1,19 @@
 import * as React from "react";
 import IProfileProps from "./_adminProps/IProfileProps";
 import { useUser } from "../../components/appContainer/AppContainer";
-import ProfileForm from "../../components/profileForm/ProfileForm";
+import ProfileForm from "../../components/formComponents/profileForm/ProfileForm";
 
 const Profile: React.FunctionComponent<IProfileProps> = (props) => {
-    const { currentUser, resetUser } = useUser();
+    const { currentUser, currentUserSettings, userRetrievedCallback } = useUser();
 
     const [resetForm, setResetForm] = React.useState<boolean>(false);
 
     React.useEffect(() => {
-        if (currentUser === null) {
+        console.log(`currentUser or currentUserSettings has changed; ${currentUser?.UserName}`);
+        if (currentUser === null && currentUserSettings === null) {
             setResetForm(true);
         }
-    }, [currentUser]);
+    }, [currentUser, currentUserSettings]);
 
     const userNameStr: string = currentUser !== null && currentUser !== undefined && currentUser.FirstName !== null && currentUser.FirstName !== undefined ? currentUser?.FirstName : "";
 
@@ -29,7 +30,9 @@ const Profile: React.FunctionComponent<IProfileProps> = (props) => {
             </main>
             <ProfileForm
                 user={currentUser}
+                userSettings={currentUserSettings}
                 resetForm={resetForm}
+                userUpdatedOrDeletedCallback={userRetrievedCallback}
             />
         </div>;
 

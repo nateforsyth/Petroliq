@@ -114,6 +114,10 @@ const PasswordChangeForm: React.FC<IPasswordChangeFormProps> = (props) => {
         defaultValues
     });
 
+    const onInvalid = (error: any) => {
+        console.log(`onInvalid`, error);
+    };
+
     const onSubmit: SubmitHandler<LoginFormInputs> = async (
         data: LoginFormInputs
     ) => {
@@ -136,7 +140,7 @@ const PasswordChangeForm: React.FC<IPasswordChangeFormProps> = (props) => {
                     </Box>
                     <Box className="card-form-box">
                         <FormProvider {...methods}>
-                            <Card component="form" onSubmit={methods.handleSubmit(onSubmit)}>
+                            <Card component="form" onSubmit={methods.handleSubmit(onSubmit, onInvalid)}>
                                 <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                                     <FormTextField name="userId" label="User Id" fullWidth={true} disabled={true} sx={{ marginBottom: "14px" }} />
                                     <FormTextField type={showOldPassword ? "text" : "password"} name="oldPassword" label="Old Password" InputProps={{

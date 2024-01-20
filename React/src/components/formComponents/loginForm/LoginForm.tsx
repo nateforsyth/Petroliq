@@ -92,7 +92,9 @@ const LoginForm: React.FC<ILoginFormProps> = (props) => {
     React.useEffect(() => {
         setShowAuthSuccess(props.loginSuccess);
         setLoading(false);
-        new Promise(f => setTimeout(f, (props.authSuccessTimeoutSeconds * 1000)))
+        new Promise(f => {
+            setTimeout(f, (props.authSuccessTimeoutSeconds * 1000))
+        })
             .then(() => {
                 setProcessing(false);
             });
@@ -102,7 +104,9 @@ const LoginForm: React.FC<ILoginFormProps> = (props) => {
         setShowAuthFailure(props.loginFail);
         setLoading(false);
         setCanCancel(true);
-        new Promise(f => setTimeout(f, (props.authFailTimeoutSeconds * 1000)))
+        new Promise(f => {
+            setTimeout(f, (props.authFailTimeoutSeconds * 1000))
+        })
             .then(() => {
                 setProcessing(false);
             });

@@ -3,5 +3,5 @@ export default interface IObjectUpdateResult {
     message?: string;
 
     objectType?: string;
-    updatedFields?: string[];
+    data?: any;
 }

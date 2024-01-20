@@ -1,4 +1,4 @@
-import IUser from "../../interfaces/API/IUser";
+import IUser from "../../model/interfaces/API/IUser";
 
 export default interface IPasswordChangeFormProps {
     userToUpdate: IUser|null;

@@ -3,7 +3,7 @@ import IFillProps from "./_fillsProps/IFillProps";
 
 import { Params, useParams } from "react-router-dom";
 import { getFill } from "../../dataLayer/data";
-import IFill from "../../interfaces/IFill";
+import IFill from "../../components/model/interfaces/IFill";
 
 import './Fills.css';
 
