@@ -23,18 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Consumption">
-      <HintPath>..\..\PetroliqAlgorithm\Consumption\bin\Release\net8.0\Consumption.dll</HintPath>
-    </Reference>
-    <Reference Include="Discount">
-      <HintPath>..\..\PetroliqAlgorithm\Discount\bin\Release\net8.0\Discount.dll</HintPath>
-    </Reference>
-    <Reference Include="Shared">
-      <HintPath>..\..\PetroliqAlgorithm\Utilities\bin\Release\net8.0\Shared.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
