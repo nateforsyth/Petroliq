@@ -8,7 +8,7 @@ namespace PetroliqConsole
     {
         static void Main(string[] args)
         {
-            //EnumTester();
+            EnumTester();
             //PasswordHashTest();
 
             Console.Read();
@@ -33,7 +33,10 @@ namespace PetroliqConsole
             bool passwordVerified2 = false;
 
             Console.WriteLine("Enter your password:");
+
+#pragma warning disable CS8600
             password = Console.ReadLine();
+#pragma warning restore CS8600
 
             if (!string.IsNullOrEmpty(password))
             {

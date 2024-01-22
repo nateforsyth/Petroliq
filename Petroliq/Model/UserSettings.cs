@@ -28,6 +28,7 @@ namespace Petroliq_API.Model
         public double MinimumSpendForDiscount { get; set; }
         public double LastPricePerCapacityUnit { get; set; }
         public double AccruedDiscount { get; set; }
+        public double IdealDiscount { get; set; }
 
         public int RoundTo { get; set; }
 

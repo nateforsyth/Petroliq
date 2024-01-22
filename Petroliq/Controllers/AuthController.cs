@@ -45,8 +45,9 @@ namespace Petroliq_API.Controllers
             _configuration = configuration;
             _userService = userService;
 
+#pragma warning disable CS8601
 #if !DEBUG
-             _jwtAuthKey = _configuration["Auth:Key"]; // authSettings.Value.Key; // from appsettings.json, for IIS usage
+            _jwtAuthKey = _configuration["Auth:Key"]; // authSettings.Value.Key; // from appsettings.json, for IIS usage
 #else
             _jwtAuthKey = _configuration["AuthKey"]; // from secrets.json, inaccessible when hosted on IIS            
 #endif
@@ -56,6 +57,7 @@ namespace Petroliq_API.Controllers
             _refreshTokenValiditityDays = _authSettings.Value.RefreshTokenValiditityDays;
             _tokenValidityMinutes = _authSettings.Value.TokenValidityMinutes;
         }
+#pragma warning restore CS8601
 
         /// <summary>
         /// Authenticate with this Web API using a username and password, token is persisted to the HttpOnly cookie
@@ -269,7 +271,9 @@ namespace Petroliq_API.Controllers
                             return BadRequest("Expired refresh token, User's Refresh Token has been revoked for rotation, they'll need to log in again");
                         }
 
+#pragma warning disable CS8602
                         var newToken = AuthHelpers.GenerateAuthToken(expiredPrincipal.Claims.ToList(), _jwtAuthKey, _jwtIssuer, _jwtAudience, _tokenValidityMinutes);
+#pragma warning restore CS8602
 
                         // generate a new hashedFingerprint to use for validation of the Refresh token, to replace the existing cookie
                         string newHashedFingerprint = BCrypt.Net.BCrypt.HashPassword(refreshTokenCookie);
