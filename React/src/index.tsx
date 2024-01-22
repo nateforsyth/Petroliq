@@ -11,6 +11,7 @@ import Account from './routes/admin/Account';
 import Dashboard from './routes/admin/Dashboard';
 import Profile from './routes/admin/Profile';
 import Register from './routes/admin/Register';
+import Privacy from './routes/Privacy';
 
 // https://reactrouter.com/docs/en/v6/getting-started/tutorial
 // https://mui.com/material-ui/getting-started/installation/
@@ -39,6 +40,7 @@ root.render(
         <Route path="Dashboard" element={<Dashboard />} />
         <Route path="Profile" element={<Profile />} />
         <Route path="Register" element={<Register />} />
+        <Route path="Privacy" element={<Privacy />} />
         <Route
           path="*"
           element={

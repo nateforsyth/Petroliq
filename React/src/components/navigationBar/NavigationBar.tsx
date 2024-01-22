@@ -177,7 +177,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
             if (fetchedUser !== null && authResult !== null && fetchedUserId !== undefined && authRefreshToken !== undefined && authJwtExpiry !== undefined) {
                 await new Promise(async f => {
                     const userSettings: IUserSettings = await UserService.fetchUserSettingsByUserId(fetchedUserId);
-                    
+
                     setLoggedIn(true);
 
                     localStorage.setItem("refresh", authRefreshToken);
@@ -191,7 +191,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
                     props.userRetrievedCallback(fetchedUser, userSettings);
 
                     setLoginSuccess(true);
-                    
+
                     setTimeout(f, authSuccessTimeoutSeconds * 1000);
 
                     setLoggingIn(false);
@@ -233,6 +233,9 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         },
         {
             label: 'Register', link: 'Register', isLink: true, callback: handleCloseUserMenu, hide: loggedIn
+        },
+        {
+            label: 'Privacy policy', link: 'Privacy', isLink: true, callback: handleCloseUserMenu, hide: false
         }
     ];
 
@@ -250,7 +253,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
             </MenuItem>
         </div> :
         <div>
-            <MenuItem key="userId">
+            <MenuItem key="userId" disabled={true}>
                 <Typography textAlign="center">You are not logged in</Typography>
             </MenuItem>
         </div>;
