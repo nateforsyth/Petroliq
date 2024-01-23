@@ -12,39 +12,6 @@ namespace Petroliq_API.Controllers
     public class PetroliqController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly decimal _kmToMiFactor; // Petroliq:KM_MI_FACTOR
-        private readonly decimal _miToKmFactor; // Petroliq:MI_KM_FACTOR
-        private readonly decimal _ltrToGalFactor; // Petroliq:LTR_GAL_FACTOR
-        private readonly int _defaultRoundTo; // Petroliq:DEFAULT_ROUND_TO
-        private readonly bool _petroliqSettingsParsed = false;
-
-#pragma warning disable CS1591
-        public decimal GetKmToMiFactor()
-        {
-            return _petroliqSettingsParsed ? _kmToMiFactor : -1;
-        }
-#pragma warning restore CS1591
-
-#pragma warning disable CS1591
-        public decimal GetMiToKmFactor()
-        {
-            return _petroliqSettingsParsed ? _miToKmFactor : -1;
-        }
-#pragma warning restore CS1591
-
-#pragma warning disable CS1591
-        public decimal GetLtrToGalFactor()
-        {
-            return _petroliqSettingsParsed ? _ltrToGalFactor : -1;
-        }
-#pragma warning restore CS1591
-
-#pragma warning disable CS1591
-        public int GetDefaultRoundTo()
-        {
-            return _petroliqSettingsParsed ? _defaultRoundTo : -1;
-        }
-#pragma warning restore CS1591
 
         /// <summary>
         /// Petroliq controller constructor
@@ -53,12 +20,6 @@ namespace Petroliq_API.Controllers
         public PetroliqController(IConfiguration configuration)
         {
             _configuration = configuration;
-
-            _petroliqSettingsParsed =
-                decimal.TryParse(_configuration["Petroliq:KM_MI_FACTOR"], out _kmToMiFactor) &&
-                decimal.TryParse(_configuration["Petroliq:MI_KM_FACTOR"], out _miToKmFactor) &&
-                decimal.TryParse(_configuration["Petroliq:LTR_GAL_FACTOR"], out _ltrToGalFactor) &&            
-                int.TryParse(_configuration["Petroliq:DEFAULT_ROUND_TO"], out _defaultRoundTo);
         }
 
         /// <summary>
