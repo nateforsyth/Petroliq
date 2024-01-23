@@ -30,22 +30,22 @@ namespace Petroliq_API.Model.ControllerModels
         /// <summary>
         /// Base discount
         /// </summary>
-        public double BaseDiscount { get; set; }
+        public decimal BaseDiscount { get; set; }
 
         /// <summary>
         /// Minimum spend for discount
         /// </summary>
-        public double MinimumSpendForDiscount { get; set; }
+        public decimal MinimumSpendForDiscount { get; set; }
 
         /// <summary>
         /// Last price per capacity unit
         /// </summary>
-        public double LastPricePerCapacityUnit { get; set; }
+        public decimal LastPricePerCapacityUnit { get; set; }
 
         /// <summary>
         /// Accrued Discount
         /// </summary>
-        public double AccruedDiscount { get; set; }
+        public decimal AccruedDiscount { get; set; }
 
         /// <summary>
         /// Number of digits to round calculations to
@@ -53,8 +53,39 @@ namespace Petroliq_API.Model.ControllerModels
         public int RoundTo { get; set; }
 
         /// <summary>
+        /// Number of digits to round fuel unit cost to
+        /// </summary>
+        public int RoundUnitCostTo { get; set; }
+
+        /// <summary>
         /// Ideal discount value; this indicates the maximum that the fuel company regularly offers, or the one that the user regularly tries to target for redemption
         /// </summary>
-        public double IdealDiscount { get; set; }
+        public decimal IdealDiscount { get; set; }
+
+        /// <summary>
+        /// Current Batch Id; identifies the Key for batches of Fills for aggregation
+        ///     e.g. 3|4 = 3rd batch, 4th fill; CurrentBatchId = 3
+        /// </summary>
+        public int CurrentBatchId { get; set; }
+
+        /// <summary>
+        /// Next Fill Id; identifies the Value for batches of Fills for aggregation
+        ///     e.g. 3|4 = 3rd batch, 4th fill; NextFillId = 4
+        /// </summary>
+        public int NextFillId { get; set; }
+
+        /// <summary>
+        /// Average driving Capacity Unit per Distance Unit
+        ///     e.g. 15.1 kilometers per litre
+        ///     e.g. 29.2 miles per gallon
+        /// </summary>
+        public decimal AvgCapacityUnitPerDistanceUnit { get; set; }
+
+        /// <summary>
+        /// Maximum volume of fuel that qualifies for spending of an accumulated discount
+        ///     Most schemes specify a maximum amount of fuel that can be purchased when using your accumulated discount
+        ///     e.g. 50 litres
+        /// </summary>
+        public decimal MaxVolumeQualifyingForDiscount { get; set; }
     }
 }

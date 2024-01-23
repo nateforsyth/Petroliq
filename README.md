@@ -72,6 +72,8 @@ As IIS and ASP.NET Core do not play overly well together, User Secrets (secrets.
 	- Add Fuel type enumeration; Diesel, Petrol/Gasolene.
 	- Add Controller for retrieval and validation of all enums.
 - Add localisation support.
+- Allow for a User to be able to change their Capacity, Currency and Distance Unit settings on the fly and auto-recalc all values.
+  - Likely need to persist previous settings so that a conversion can be done.
 
 
 ## Reference

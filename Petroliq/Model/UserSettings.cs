@@ -24,13 +24,19 @@ namespace Petroliq_API.Model
         public DistanceUnit DistanceUnit { get; set; }
 
         // TODO implement update of LastPricePerCapacityUnit when a new Fill has been added for this UserForRegistration
-        public double BaseDiscount { get; set; }
-        public double MinimumSpendForDiscount { get; set; }
-        public double LastPricePerCapacityUnit { get; set; }
-        public double AccruedDiscount { get; set; }
-        public double IdealDiscount { get; set; }
+        public decimal BaseDiscount { get; set; }
+        public decimal MinimumSpendForDiscount { get; set; }
+        public decimal LastPricePerCapacityUnit { get; set; }
+        public decimal AccruedDiscount { get; set; }
+        public decimal IdealDiscount { get; set; }
 
         public int RoundTo { get; set; }
+        public int RoundUnitCostTo { get; set; }
+
+        public int CurrentBatchId { get; set; }
+        public int NextFillId { get; set; }
+        public decimal AvgCapacityUnitPerDistanceUnit { get; set; }
+        public decimal MaxVolumeQualifyingForDiscount { get; set; }
 
         public static List<string> ValidateFieldUpdates(UserSettings original, UserSettings updated)
         {
@@ -81,6 +87,31 @@ namespace Petroliq_API.Model
                 if (!original.RoundTo.Equals(updated.RoundTo))
                 {
                     updatedFields.Add("RoundTo");
+                }
+
+                if (!original.IdealDiscount.Equals(updated.IdealDiscount))
+                {
+                    updatedFields.Add("IdealDiscount");
+                }
+
+                if (!original.CurrentBatchId.Equals(updated.CurrentBatchId))
+                {
+                    updatedFields.Add("CurrentBatchId");
+                }
+
+                if (!original.NextFillId.Equals(updated.NextFillId))
+                {
+                    updatedFields.Add("NextFillId");
+                }
+
+                if (!original.AvgCapacityUnitPerDistanceUnit.Equals(updated.AvgCapacityUnitPerDistanceUnit))
+                {
+                    updatedFields.Add("AvgCapacityUnitPerDistanceUnit");
+                }
+
+                if (!original.MaxVolumeQualifyingForDiscount.Equals(updated.MaxVolumeQualifyingForDiscount))
+                {
+                    updatedFields.Add("MaxVolumeQualifyingForDiscount");
                 }
             }
 
