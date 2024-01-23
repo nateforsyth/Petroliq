@@ -11,6 +11,56 @@ namespace Petroliq_API.Controllers
     [ApiController]
     public class PetroliqController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+        private readonly double _kmToMiFactor; // Petroliq:KM_MI_FACTOR
+        private readonly double _miToKmFactor; // Petroliq:MI_KM_FACTOR
+        private readonly double _ltrToGalFactor; // Petroliq:LTR_GAL_FACTOR
+        private readonly double _defaultRoundTo; // Petroliq:DEFAULT_ROUND_TO
+        private readonly bool _petroliqSettingsParsed = false;
+
+#pragma warning disable CS1591
+        public double GetKmToMiFactor()
+        {
+            return _petroliqSettingsParsed ? _kmToMiFactor : -1;
+        }
+#pragma warning restore CS1591
+
+#pragma warning disable CS1591
+        public double GetMiToKmFactor()
+        {
+            return _petroliqSettingsParsed ? _miToKmFactor : -1;
+        }
+#pragma warning restore CS1591
+
+#pragma warning disable CS1591
+        public double GetLtrToGalFactor()
+        {
+            return _petroliqSettingsParsed ? _ltrToGalFactor : -1;
+        }
+#pragma warning restore CS1591
+
+#pragma warning disable CS1591
+        public double GetDefaultRoundTo()
+        {
+            return _petroliqSettingsParsed ? _defaultRoundTo : -1;
+        }
+#pragma warning restore CS1591
+
+        /// <summary>
+        /// Petroliq controller constructor
+        /// </summary>
+        /// <param name="configuration"></param>
+        public PetroliqController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+
+            _petroliqSettingsParsed = 
+                double.TryParse(_configuration["Petroliq:KM_MI_FACTOR"], out _kmToMiFactor) &&            
+                double.TryParse(_configuration["Petroliq:MI_KM_FACTOR"], out _miToKmFactor) &&            
+                double.TryParse(_configuration["Petroliq:LTR_GAL_FACTOR"], out _ltrToGalFactor) &&            
+                double.TryParse(_configuration["Petroliq:DEFAULT_ROUND_TO"], out _defaultRoundTo);
+        }
+
         /// <summary>
         /// Get Petroliq Overviews
         /// </summary>

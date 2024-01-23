@@ -51,5 +51,10 @@ namespace Petroliq_API.Model.ControllerModels
         /// Number of digits to round calculations to
         /// </summary>
         public int RoundTo { get; set; }
+
+        /// <summary>
+        /// Ideal discount value; this indicates the maximum that the fuel company regularly offers, or the one that the user regularly tries to target for redemption
+        /// </summary>
+        public double IdealDiscount { get; set; }
     }
 }
