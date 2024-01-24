@@ -1,4 +1,6 @@
-﻿namespace Petroliq_API.Model
+﻿using Shared.Model;
+
+namespace Petroliq_API.Model
 {
     /// <summary>
     /// User Update Model

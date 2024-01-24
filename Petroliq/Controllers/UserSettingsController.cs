@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Authorisation;
-using Petroliq_API.Model;
 using Petroliq_API.Model.ControllerModels;
 using Petroliq_API.Services;
+using Shared.Model;
 
 namespace Petroliq_API.Controllers
 {

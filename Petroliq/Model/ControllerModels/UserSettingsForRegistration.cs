@@ -1,4 +1,4 @@
-﻿using static Petroliq_API.Application.Enums;
+﻿using static Shared.Enums;
 
 namespace Petroliq_API.Model.ControllerModels
 {

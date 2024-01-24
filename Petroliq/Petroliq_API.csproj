@@ -23,9 +23,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\PetroliqAlgorithm\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <!--<ItemGroup>
+    <ProjectReference Include="..\..\PetroliqAlgorithm\Shared\Shared.csproj" />
+  </ItemGroup>-->
 
 </Project>

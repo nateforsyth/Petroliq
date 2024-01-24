@@ -5,11 +5,7 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Petroliq_API", "Petroliq\Petroliq_API.csproj", "{5C75B312-E77B-47AB-B754-4F01C717FB84}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Consumption", "..\PetroliqAlgorithm\Consumption\Consumption.csproj", "{48BD32A6-20E3-4A2C-9703-980E18267AF2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discount", "..\PetroliqAlgorithm\Discount\Discount.csproj", "{C393B7A1-280F-407F-9D3D-A6E83C9758C8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "..\PetroliqAlgorithm\Shared\Shared.csproj", "{B6E34EA7-BD65-4762-9D85-1AC42A2AD4E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "..\PetroliqAlgorithm\Shared\Shared.csproj", "{1CA9FB14-6057-46FC-A774-490E3524BECB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +17,10 @@ Global
 		{5C75B312-E77B-47AB-B754-4F01C717FB84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C75B312-E77B-47AB-B754-4F01C717FB84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C75B312-E77B-47AB-B754-4F01C717FB84}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48BD32A6-20E3-4A2C-9703-980E18267AF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48BD32A6-20E3-4A2C-9703-980E18267AF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48BD32A6-20E3-4A2C-9703-980E18267AF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48BD32A6-20E3-4A2C-9703-980E18267AF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C393B7A1-280F-407F-9D3D-A6E83C9758C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C393B7A1-280F-407F-9D3D-A6E83C9758C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C393B7A1-280F-407F-9D3D-A6E83C9758C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C393B7A1-280F-407F-9D3D-A6E83C9758C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6E34EA7-BD65-4762-9D85-1AC42A2AD4E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6E34EA7-BD65-4762-9D85-1AC42A2AD4E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6E34EA7-BD65-4762-9D85-1AC42A2AD4E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6E34EA7-BD65-4762-9D85-1AC42A2AD4E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA9FB14-6057-46FC-A774-490E3524BECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA9FB14-6057-46FC-A774-490E3524BECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA9FB14-6057-46FC-A774-490E3524BECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA9FB14-6057-46FC-A774-490E3524BECB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

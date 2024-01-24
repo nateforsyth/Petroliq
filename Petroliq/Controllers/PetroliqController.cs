@@ -59,5 +59,12 @@ namespace Petroliq_API.Controllers
 
             return Ok($"{toSpend}|{specifiedDiscount}");
         }
+
+        //[HttpPost]
+        //[Route("AddFill")]
+        //public async Task<IActionResult> AddFill([FromBody] Fill fill)
+        //{
+        //    return Ok();
+        //}
     }
 }

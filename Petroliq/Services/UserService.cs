@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Petroliq_API.Model;
+using Shared.Model;
 
 namespace Petroliq_API.Services
 {

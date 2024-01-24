@@ -4,7 +4,8 @@ using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
 using Petroliq_API.Model.ControllerModels;
 using Petroliq_API.Services;
-using static Petroliq_API.Application.Enums;
+using Shared.Model;
+using static Shared.Enums;
 
 namespace Petroliq_API.Controllers
 {
@@ -207,7 +208,7 @@ namespace Petroliq_API.Controllers
                     userUpdateModel.UpdatedUser.RefreshTokenExpiryTime = user.RefreshTokenExpiryTime;
 
                     await _userService.UpdateAsync(userUpdateModel.Id, userUpdateModel.UpdatedUser);
-                    List<string> updatedUserFields = Model.User.ValidateFieldUpdates(user, userUpdateModel.UpdatedUser);
+                    List<string> updatedUserFields = Shared.Model.User.ValidateFieldUpdates(user, userUpdateModel.UpdatedUser);
 
                     userUpdateModel.UpdatedUserSettings.Id = userSettings.Id;
                     userUpdateModel.UpdatedUserSettings.UserId = userSettings.UserId;

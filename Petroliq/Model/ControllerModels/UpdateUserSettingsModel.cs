@@ -1,4 +1,6 @@
-﻿namespace Petroliq_API.Model.ControllerModels
+﻿using Shared.Model;
+
+namespace Petroliq_API.Model.ControllerModels
 {
     /// <summary>
     /// Update UserSettings Model; can update a UserSettings object by Id or UserId, using the UseUserId bool

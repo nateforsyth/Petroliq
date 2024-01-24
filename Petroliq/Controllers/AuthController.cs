@@ -5,8 +5,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Petroliq_API.Authorisation;
-using Petroliq_API.Model;
 using Petroliq_API.Model.ControllerModels;
+using Shared.Model;
 
 namespace Petroliq_API.Controllers
 {
