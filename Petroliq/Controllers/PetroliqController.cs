@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
+using Petroliq_API.Model.ControllerModels;
+using Petroliq_API.Services;
+using Shared.Model;
+using static Shared.Enums;
 
 namespace Petroliq_API.Controllers
 {
@@ -12,14 +17,17 @@ namespace Petroliq_API.Controllers
     public class PetroliqController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly UserSettingsService _userSettingsService;
 
         /// <summary>
         /// Petroliq controller constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public PetroliqController(IConfiguration configuration)
+        /// <param name="userSettingsService"></param>
+        public PetroliqController(IConfiguration configuration, UserSettingsService userSettingsService)
         {
             _configuration = configuration;
+            _userSettingsService = userSettingsService;
         }
 
         /// <summary>
@@ -60,11 +68,96 @@ namespace Petroliq_API.Controllers
             return Ok($"{toSpend}|{specifiedDiscount}");
         }
 
-        //[HttpPost]
-        //[Route("AddFill")]
-        //public async Task<IActionResult> AddFill([FromBody] Fill fill)
-        //{
-        //    return Ok();
-        //}
+        /// <summary>
+        /// Add a Fill object to the database for the logged in User
+        /// </summary>
+        /// <param name="fillModel"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("AddFill")]
+        [Authorize("appUser")]
+        public async Task<IActionResult> AddFill([FromBody] AddFillModel fillModel)
+        {
+            if (HttpContext.User == null)
+            {
+                return StatusCode(500, "No User in Context");
+            }
+
+            (bool retrieveAppUserOnly, string loggedInUserId) = AuthHelpers.ValidateAppUserRole(HttpContext);
+
+            if (ModelState.IsValid)
+            {
+                var userSettings = await _userSettingsService.GetForUserAsync(loggedInUserId, true);
+                if (userSettings == null)
+                {
+                    return BadRequest();
+                }
+
+                if (decimal.TryParse(_configuration["Petroliq:KM_MI_FACTOR"], out decimal kmMiFactor) &&
+                    decimal.TryParse(_configuration["Petroliq:MI_KM_FACTOR"], out decimal miKmFactor) &&
+                    decimal.TryParse(_configuration["Petroliq:LTR_GAL_FACTOR"], out decimal ltrGalFactor))
+                {
+                    Fill fill = new Fill(
+                        userSettings.CurrentBatchId,
+                        userSettings.NextFillId,
+                        fillModel.FillDate,
+                        userSettings.CapacityUnit,
+                        userSettings.DistanceUnit,
+                        fillModel.StartOdo,
+                        fillModel.EndOdo,
+                        fillModel.Volume,
+                        fillModel.Discount,
+                        kmMiFactor,
+                        miKmFactor,
+                        ltrGalFactor,
+                        fillModel.DiscountCashed,
+                        fillModel.UnitSpotPrice,
+                        userSettings.RoundTo
+                    );
+
+                    // calculate consumption metrics
+                    if (userSettings.DistanceUnit == DistanceUnit.Kilometers)
+                    {
+                        fill.KmPerLtr();
+                    }
+                    else
+                    {
+                        fill.MiPerGal();
+                    }
+
+                    // add fill1Discount to settings.AccruedDiscount if fill1Discount hasn't been cashed
+                    if (!fillModel.DiscountCashed)
+                    {
+                        userSettings.AccruedDiscount += fill.Discount;
+                        userSettings.NextFillId += 1;
+                    }
+                    else
+                    {
+                        userSettings.AccruedDiscount = 0;
+                        userSettings.NextFillId = 0;
+                        userSettings.CurrentBatchId += 1;
+                    }
+
+                    if (!string.Equals($"{userSettings.LastPricePerCapacityUnit}", $"{fill.UnitSpotPrice}")) // TODO fix this because rounding is a problem
+                    {
+                        userSettings.LastPricePerCapacityUnit = fill.UnitSpotPrice;
+                    }
+
+                    return Ok(new
+                    {
+                        Fill = fill,
+                        UserSettings = userSettings
+                    });
+                }
+                else
+                {
+                    return BadRequest();
+                }                
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
     }
 }
