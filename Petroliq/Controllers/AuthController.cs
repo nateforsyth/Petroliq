@@ -1,17 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Petroliq_API.Services;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Petroliq_API.Authorisation;
 using Petroliq_API.Model;
-using MongoDB.Driver.Linq;
-using Microsoft.AspNetCore.Identity;
-using Amazon.Auth.AccessControlPolicy;
-using Newtonsoft.Json.Linq;
 using Petroliq_API.Model.ControllerModels;
 
 namespace Petroliq_API.Controllers

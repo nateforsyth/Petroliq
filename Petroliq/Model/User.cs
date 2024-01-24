@@ -5,7 +5,7 @@ namespace Petroliq_API.Model
 {
 #pragma warning disable CS1591
     /// <summary>
-    /// UserForRegistration model
+    /// User model
     /// </summary>
     public class User
     {
