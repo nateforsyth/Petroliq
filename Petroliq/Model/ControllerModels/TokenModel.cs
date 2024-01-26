@@ -9,10 +9,5 @@
         /// Principal Id
         /// </summary>
         public string? PrincipalId { get; set; }
-
-        /// <summary>
-        /// Refresh token, hashed and to be compared with cookie
-        /// </summary>
-        public string? RefreshTokenFingerprint { get; set; }
     }
 }

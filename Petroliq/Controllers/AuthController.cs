@@ -142,12 +142,11 @@ namespace Petroliq_API.Controllers
 
                         string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
                         Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
-                        Response.Cookies.Append("X-Fingerprint", refreshToken, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
+                        Response.Cookies.Append("X-Fingerprint", hashedFingerprint, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
 
                         return Ok(new
                         {
                             UserId = user.Id,
-                            RefreshToken = hashedFingerprint,
                             Expiration = token.ValidTo
                         });
                     }
@@ -178,7 +177,7 @@ namespace Petroliq_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] TokenModel tokenModel)
         {
-            if (tokenModel == null)
+            if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request, token model is null");
             }
@@ -188,15 +187,7 @@ namespace Petroliq_API.Controllers
 
             if (refreshTokenCookie != null && !string.IsNullOrEmpty(refreshTokenCookie))
             {
-                string? refreshTokenFingerprint = tokenModel.RefreshTokenFingerprint;
-
-                bool fingerprintsMatch = BCrypt.Net.BCrypt.Verify(refreshTokenCookie, refreshTokenFingerprint);
-
-                if (!fingerprintsMatch)
-                {
-                    return Unauthorized("Fingerprints don't match");
-                }
-                else if (string.IsNullOrEmpty(_jwtAuthKey))
+                if (string.IsNullOrEmpty(_jwtAuthKey))
                 {
                     return StatusCode(500, "Auth Key missing from configuration");
                 }
@@ -222,9 +213,14 @@ namespace Petroliq_API.Controllers
                             return NotFound("User record state is invalid");
                         }
 
-                        if (string.IsNullOrEmpty(user.RefreshToken) || !user.RefreshToken.Equals(refreshTokenCookie))
+                        bool fingerprintsMatch = BCrypt.Net.BCrypt.Verify(user.RefreshToken, refreshTokenCookie);
+
+                        if (!fingerprintsMatch)
                         {
-                            return Unauthorized("Refresh token cookie doens't match User record");
+                            user.RefreshToken = null;
+                            await _userService.UpdateAsync(user.Id, user);
+
+                            return BadRequest("Invalid refresh token, User's Refresh Token has been revoked, they will need to log in again");
                         }
 
                         // get expired Principal from cookie if available
@@ -248,14 +244,6 @@ namespace Petroliq_API.Controllers
                             return BadRequest("Mismatch in token data");
                         }
 
-                        if (user.RefreshToken != refreshTokenCookie)
-                        {
-                            user.RefreshToken = null;
-                            await _userService.UpdateAsync(user.Id, user);
-
-                            return BadRequest("Invalid refresh token, User's Refresh Token has been revoked, they will need to log in again");
-                        }
-
                         // force revocation of refresh tokens after expiry
                         if (user.RefreshTokenExpiryTime <= DateTime.Now)
                         {
@@ -276,12 +264,11 @@ namespace Petroliq_API.Controllers
                         Response.Cookies.Delete("X-Access-Token");
                         Response.Cookies.Append("X-Access-Token", tokenString, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
                         Response.Cookies.Delete("X-Fingerprint");
-                        Response.Cookies.Append("X-Fingerprint", refreshTokenCookie, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
+                        Response.Cookies.Append("X-Fingerprint", newHashedFingerprint, new CookieOptions() { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, IsEssential = true });
 
                         return Ok(new
                         {
                             UserId = user.Id,
-                            RefreshToken = newHashedFingerprint,
                             Expiration = newToken.ValidTo
                         });
                     }
