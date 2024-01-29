@@ -61,7 +61,6 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
 
     // local storage state handler hooks
     const userId_localStorage: string = UseReadLocalStorage("userId") as string;
-    const refreshToken_localStorage: string = UseReadLocalStorage("refresh") as string;
     const tokenExpiry_localStorage: string = UseReadLocalStorage("tokenExpiry") as string;
 
     const authSuccessTimeoutSeconds: number = 3;
@@ -86,11 +85,11 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
             setLoggedInUserId(userId_localStorage);
         }
 
-        if (userId_localStorage === "" && refreshToken_localStorage === "" && tokenExpiry_localStorage === "") {
+        if (userId_localStorage === "" && tokenExpiry_localStorage === "") {
             console.log("navigating home");
             navigate("/");
         }
-    }, [userId_localStorage, refreshToken_localStorage, tokenExpiry_localStorage]);
+    }, [userId_localStorage, tokenExpiry_localStorage]);
 
     const retrieveUserWithBrowserToken = async () => {
         const currentBearerTokenExpiryDt: Date = new Date(tokenExpiry_localStorage);
@@ -98,7 +97,6 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         if (currentBearerTokenExpiryDt > new Date() && userId_localStorage) {
             const authResult: IAuthResult = {
                 userId: userId_localStorage,
-                refreshToken: refreshToken_localStorage,
                 jwtExpiry: tokenExpiry_localStorage,
                 resposeCode: 200,
                 message: "Authorised using browser token"
@@ -108,7 +106,7 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
         }
         else { // attempt to refresh access token using refresh token
             if (userId_localStorage) {
-                const authResult: IAuthResult = await AuthService.refreshToken(userId_localStorage, refreshToken_localStorage);
+                const authResult: IAuthResult = await AuthService.refreshToken(userId_localStorage);
 
                 if (authResult !== null && authResult.userId !== null) {
                     await getUser(authResult);
@@ -168,19 +166,17 @@ const NavigationBar: React.FunctionComponent<INavigationBarProps> = (props) => {
     };
 
     const getUser = async (authResult: IAuthResult) => {
-        if (authResult.userId !== undefined && authResult.refreshToken !== undefined && authResult.jwtExpiry !== undefined) {
+        if (authResult.userId !== undefined && authResult.jwtExpiry !== undefined) {
             const fetchedUser: IUser = await UserService.fetchUserById(authResult.userId);
             const fetchedUserId: string | undefined = fetchedUser?.Id;
-            const authRefreshToken: string | undefined = authResult.refreshToken;
             const authJwtExpiry: string | undefined = authResult.jwtExpiry;
 
-            if (fetchedUser !== null && authResult !== null && fetchedUserId !== undefined && authRefreshToken !== undefined && authJwtExpiry !== undefined) {
+            if (fetchedUser !== null && authResult !== null && fetchedUserId !== undefined && authJwtExpiry !== undefined) {
                 await new Promise(async f => {
                     const userSettings: IUserSettings = await UserService.fetchUserSettingsByUserId(fetchedUserId);
 
                     setLoggedIn(true);
 
-                    localStorage.setItem("refresh", authRefreshToken);
                     localStorage.setItem("tokenExpiry", authJwtExpiry);
                     localStorage.setItem("userId", fetchedUserId);
 

@@ -99,7 +99,13 @@ export class UserService {
                         "MinimumSpendForDiscount": settings.MinimumSpendForDiscount,
                         "LastPricePerCapacityUnit": settings.LastPricePerCapacityUnit,
                         "AccruedDiscount": settings.AccruedDiscount,
-                        "RoundTo": settings.RoundTo
+                        "RoundTo": settings.RoundTo,
+                        "RoundUnitCostTo": settings.RoundUnitCostTo,
+                        "IdealDiscount": settings.IdealDiscount,
+                        "CurrentBatchId": settings.CurrentBatchId,
+                        "NextFillId": settings.NextFillId,
+                        "AvgCapacityUnitPerDistanceUnit": settings.AvgCapacityUnitPerDistanceUnit,
+                        "MaxVolumeQualifyingForDiscount": settings.MaxVolumeQualifyingForDiscount
                     }
                 },
                 {
@@ -180,7 +186,13 @@ export class UserService {
                         "MinimumSpendForDiscount": userSettings.MinimumSpendForDiscount,
                         "LastPricePerCapacityUnit": userSettings.LastPricePerCapacityUnit,
                         "AccruedDiscount": userSettings.AccruedDiscount,
-                        "RoundTo": userSettings.RoundTo
+                        "RoundTo": userSettings.RoundTo,
+                        "RoundUnitCostTo": userSettings.RoundUnitCostTo,
+                        "IdealDiscount": userSettings.IdealDiscount,
+                        "CurrentBatchId": userSettings.CurrentBatchId,
+                        "NextFillId": userSettings.NextFillId,
+                        "AvgCapacityUnitPerDistanceUnit": userSettings.AvgCapacityUnitPerDistanceUnit,
+                        "MaxVolumeQualifyingForDiscount": userSettings.MaxVolumeQualifyingForDiscount
                     }
                 },
                 {
@@ -316,7 +328,13 @@ export class UserService {
                         "MinimumSpendForDiscount": settings.MinimumSpendForDiscount,
                         "LastPricePerCapacityUnit": settings.LastPricePerCapacityUnit,
                         "AccruedDiscount": settings.AccruedDiscount,
-                        "RoundTo": settings.RoundTo
+                        "RoundTo": settings.RoundTo,
+                        "RoundUnitCostTo": settings.RoundUnitCostTo,
+                        "IdealDiscount": settings.IdealDiscount,
+                        "CurrentBatchId": settings.CurrentBatchId,
+                        "NextFillId": settings.NextFillId,
+                        "AvgCapacityUnitPerDistanceUnit": settings.AvgCapacityUnitPerDistanceUnit,
+                        "MaxVolumeQualifyingForDiscount": settings.MaxVolumeQualifyingForDiscount
                     }
                 },
                 {

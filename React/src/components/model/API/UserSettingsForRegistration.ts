@@ -9,9 +9,18 @@ export class UserSettingsForRegistration implements IUserSettingsForRegistration
     MinimumSpendForDiscount?: number;
     LastPricePerCapacityUnit?: number;
     AccruedDiscount?: number;
-    RoundTo?: number;
 
-    constructor(countryName: string, currencyUnit: number, capacityUnit: number, distanceUnit: number, baseDiscount: number, minimumSpendForDiscount: number, lastPricePerCapacityUnit: number, accruedDiscount: number = 0, roundTo: number = 0) {
+    CurrentBatchId?: number;
+    NextFillId?: number;
+    
+    IdealDiscount?: number;
+    AvgCapacityUnitPerDistanceUnit?: number;
+    MaxVolumeQualifyingForDiscount?: number;
+
+    RoundTo?: number;
+    RoundUnitCostTo?: number;
+
+    constructor(countryName: string, currencyUnit: number, capacityUnit: number, distanceUnit: number, baseDiscount: number, minimumSpendForDiscount: number, lastPricePerCapacityUnit: number, currentBatchId: number, nextFillId: number, idealDiscount: number, avgCapacityUnitPerDistanceUnit: number, maxVolumeQualifyingForDiscount: number, accruedDiscount: number = 0, roundTo: number = 0, roundUnitCostTo: number = 3) {
         this.CountryName = countryName;
         this.CurrencyUnit = currencyUnit;
         this.CapacityUnit = capacityUnit;
@@ -20,6 +29,15 @@ export class UserSettingsForRegistration implements IUserSettingsForRegistration
         this.MinimumSpendForDiscount = minimumSpendForDiscount;
         this.LastPricePerCapacityUnit = lastPricePerCapacityUnit;
         this.AccruedDiscount = accruedDiscount;
+
+        this.CurrentBatchId = currentBatchId;
+        this.NextFillId = nextFillId;
+
+        this.IdealDiscount = idealDiscount;
+        this.AvgCapacityUnitPerDistanceUnit = avgCapacityUnitPerDistanceUnit;
+        this.MaxVolumeQualifyingForDiscount = maxVolumeQualifyingForDiscount;
+
         this.RoundTo = roundTo;
+        this.RoundUnitCostTo = roundUnitCostTo;
     }
 }

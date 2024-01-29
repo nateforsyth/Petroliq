@@ -43,7 +43,13 @@ interface FormInputs {
     MinimumSpendForDiscount?: string | null;
     LastPricePerCapacityUnit?: string | null;
     AccruedDiscount?: string | null;
+    IdealDiscount?: string | null;
+    CurrentBatchId?: string | null;
+    NextFillId?: string | null;
+    AvgCapacityUnitPerDistanceUnit?: string | null;
+    MaxVolumeQualifyingForDiscount?: string | null;
     RoundTo?: string | null;
+    RoundUnitCostTo?: string | null;
 }
 
 const RegisterUserSchema: z.ZodSchema<FormInputs> = z.object({
@@ -57,7 +63,13 @@ const RegisterUserSchema: z.ZodSchema<FormInputs> = z.object({
     MinimumSpendForDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
     LastPricePerCapacityUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
     AccruedDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
-    RoundTo: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" })
+    IdealDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    CurrentBatchId: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    NextFillId: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    AvgCapacityUnitPerDistanceUnit: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    MaxVolumeQualifyingForDiscount: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    RoundTo: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" }),
+    RoundUnitCostTo: z.string().refine(v => { let n = Number(v); return !isNaN(n) && v?.length > 0 }, { message: "Invalid number" })
 });
 
 const FormTextFieldComp: React.FC<FormSelectProps & TextFieldProps> = ({
@@ -122,21 +134,6 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
     const userUpdateFailTimeoutSeconds: number = 5;
     const userDeletionFailTimeoutSeconds: number = 5;
 
-    // const defaultValues: FormInputs = {
-    //     FirstName: user?.FirstName ?? "",
-    //     LastName: user?.LastName ?? "",
-    //     UserName: user?.UserName ?? "",
-    //     Email: user?.Email ?? "",
-    //     Id: user?.Id ?? "",
-    //     AssignedRoles: user?.AssignedRoles ?? "",
-    //     CountryName: userSettings?.CountryName ?? "",
-    //     BaseDiscount: `${userSettings?.BaseDiscount ?? "0.06"}`,
-    //     MinimumSpendForDiscount: `${userSettings?.MinimumSpendForDiscount ?? "40"}`,
-    //     LastPricePerCapacityUnit: `${userSettings?.LastPricePerCapacityUnit ?? "0"}`,
-    //     AccruedDiscount: `${userSettings?.AccruedDiscount ?? "0"}`,
-    //     RoundTo: `${userSettings?.RoundTo ?? "2"}`
-    // };
-
     const getFormValues = (): FormInputs => {
         console.log(`getFormValues invoked; ${user?.UserName}`);
         const values: FormInputs = {
@@ -151,7 +148,13 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
             MinimumSpendForDiscount: `${userSettings?.MinimumSpendForDiscount ?? "40"}`,
             LastPricePerCapacityUnit: `${userSettings?.LastPricePerCapacityUnit ?? "0"}`,
             AccruedDiscount: `${userSettings?.AccruedDiscount ?? "0"}`,
-            RoundTo: `${userSettings?.RoundTo ?? "2"}`
+            IdealDiscount: `${userSettings?.IdealDiscount ?? "0.10"}`,
+            CurrentBatchId: `${userSettings?.CurrentBatchId ?? "0"}`,
+            NextFillId: `${userSettings?.NextFillId ?? "0"}`,
+            AvgCapacityUnitPerDistanceUnit: `${userSettings?.AvgCapacityUnitPerDistanceUnit ?? "0"}`,
+            MaxVolumeQualifyingForDiscount: `${userSettings?.MaxVolumeQualifyingForDiscount ?? "50"}`,
+            RoundTo: `${userSettings?.RoundTo ?? "2"}`,
+            RoundUnitCostTo: `${userSettings?.RoundUnitCostTo ?? "3"}`
         };
 
         return values;
@@ -206,7 +209,13 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
             MinimumSpendForDiscount: data.MinimumSpendForDiscount ? +data.MinimumSpendForDiscount : 40,
             LastPricePerCapacityUnit: data.LastPricePerCapacityUnit ? +data.LastPricePerCapacityUnit : 0,
             AccruedDiscount: data.AccruedDiscount ? +data.AccruedDiscount : 0,
-            RoundTo: data.RoundTo ? +data.RoundTo : 2
+            IdealDiscount: data.IdealDiscount ? +data.IdealDiscount : 0.10,
+            CurrentBatchId: data.CurrentBatchId ? +data.CurrentBatchId : 0,
+            NextFillId: data.NextFillId ? +data.NextFillId : 0,
+            AvgCapacityUnitPerDistanceUnit: data.AvgCapacityUnitPerDistanceUnit ? +data.AvgCapacityUnitPerDistanceUnit : 0,
+            MaxVolumeQualifyingForDiscount: data.MaxVolumeQualifyingForDiscount ? +data.MaxVolumeQualifyingForDiscount : 50,
+            RoundTo: data.RoundTo ? +data.RoundTo : 2,
+            RoundUnitCostTo: data.RoundUnitCostTo ? +data.RoundUnitCostTo : 3
         };
 
         console.log(userData.UserName);
@@ -216,17 +225,18 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
         // methods.reset();
     };
 
-    const handleUpdateUser = async (userToUpdate: User, settingsToUpdate: UserSettings) => {        
+    const handleUpdateUser = async (userToUpdate: User, settingsToUpdate: UserSettings) => {
         const currentBearerTokenExpiry: string = AuthService.getBrowserAuthTokenExpiry();
         const currentBearerTokenExpiryDt: Date = new Date(currentBearerTokenExpiry);
 
         if (props.user !== null && props.user.Id !== undefined) {
             if (currentBearerTokenExpiryDt > new Date()) {
+                console.log(currentBearerTokenExpiryDt);
                 await updateUser(userToUpdate, settingsToUpdate);
             }
             else { // need to refresh access token before continuing
-                const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
-                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id, currentRefreshToken);
+                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id);
+                console.log(authResult);
 
                 if (authResult !== null && authResult.resposeCode === 200) {
                     await updateUser(userToUpdate, settingsToUpdate);
@@ -249,7 +259,7 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
             if (userUpdateResult !== null && userUpdateResult.resposeCode === 200) {
                 await new Promise(f => {
                     console.log(userUpdateResult);
-    
+
                     const updatedUser: IUser = JSON.parse(JSON.stringify(userUpdateResult.data.User));
                     const updatedUserSettings: IUserSettings = JSON.parse(JSON.stringify(userUpdateResult.data.UserSettings));
 
@@ -262,7 +272,7 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                     props.userUpdatedOrDeletedCallback(updatedUser, updatedUserSettings);
 
                     setSavingData(false);
-    
+
                     console.log(`user and settings successfully updated; ${updatedUser.UserName}`);
                     setUserUpdateSuccess(false);
                 });
@@ -310,8 +320,7 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                 await deleteAccount(props.user);
             }
             else { // need to refresh access token before continuing
-                const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
-                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id, currentRefreshToken);
+                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id);
 
                 if (authResult !== null && authResult.resposeCode === 200) {
                     await deleteAccount(props.user);
@@ -340,8 +349,7 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                 await changePassword(props.user.Id, oldPassword, newPassword);
             }
             else { // need to refresh access token before continuing
-                const currentRefreshToken: string = AuthService.getBrowserRefreshToken();
-                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id, currentRefreshToken);
+                const authResult: IAuthResult = await AuthService.refreshToken(props.user.Id);
 
                 if (authResult !== null && authResult.resposeCode === 200) {
                     await changePassword(props.user.Id, oldPassword, newPassword);
@@ -648,6 +656,46 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                                             value={userSettings?.AccruedDiscount}
                                         />
                                         <FormTextField
+                                            name="IdealDiscount"
+                                            label="Ideal discount"
+                                            fullWidth={true}
+                                            disabled={savingData || userSettings === null}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                startAdornment: <InputAdornment position="start">{String.fromCharCode(selectedCurrencyUnit)}</InputAdornment>,
+                                            }}
+                                            value={userSettings?.IdealDiscount}
+                                        />
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
+                                        <FormTextField
+                                            name="AvgCapacityUnitPerDistanceUnit"
+                                            label="Average capacity unit per distance unit"
+                                            fullWidth={true}
+                                            disabled={savingData || userSettings === null}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                endAdornment: <InputAdornment position="end">{String.fromCharCode(selectedCapacityUnit)}</InputAdornment>,
+                                            }}
+                                            value={userSettings?.AvgCapacityUnitPerDistanceUnit}
+                                        />
+                                        <FormTextField
+                                            name="MaxVolumeQualifyingForDiscount"
+                                            label="Max volume qualifying for discount"
+                                            fullWidth={true}
+                                            disabled={savingData || userSettings === null}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                endAdornment: <InputAdornment position="end">{String.fromCharCode(selectedCapacityUnit)}</InputAdornment>,
+                                            }}
+                                            value={userSettings?.MaxVolumeQualifyingForDiscount}
+                                        />
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
+                                        <FormTextField
                                             name="RoundTo"
                                             label="Round to"
                                             fullWidth={true}
@@ -658,6 +706,38 @@ const ProfileForm: React.FunctionComponent<IProfileFormProps> = (props) => {
                                                 endAdornment: <InputAdornment position="start">decimal places</InputAdornment>,
                                             }}
                                             value={userSettings?.RoundTo}
+                                        />
+                                        <FormTextField
+                                            name="RoundUnitCostTo"
+                                            label="Round unit cost to"
+                                            fullWidth={true}
+                                            disabled={savingData || userSettings === null}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            InputProps={{
+                                                endAdornment: <InputAdornment position="start">decimal places</InputAdornment>,
+                                            }}
+                                            value={userSettings?.RoundUnitCostTo}
+                                        />
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: "row", justifyContent: "space-between" }}>
+                                        <FormTextField
+                                            name="CurrentBatchId"
+                                            label="Current batch Id"
+                                            fullWidth={true}
+                                            disabled={true}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            value={userSettings?.CurrentBatchId}
+                                        />
+                                        <FormTextField
+                                            name="NextFillId"
+                                            label="Next fill Id"
+                                            fullWidth={true}
+                                            disabled={true}
+                                            sx={{ marginBottom: "14px", width: "48%" }}
+                                            inputProps={{ type: 'number' }}
+                                            value={userSettings?.NextFillId}
                                         />
                                     </Box>
                                 </CardContent>

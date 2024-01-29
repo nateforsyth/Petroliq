@@ -7,5 +7,14 @@ export default interface IUserSettingsForRegistration {
     MinimumSpendForDiscount?: number;
     LastPricePerCapacityUnit?: number;
     AccruedDiscount?: number;
+
+    CurrentBatchId?: number;
+    NextFillId?: number;
+
+    IdealDiscount?: number;
+    AvgCapacityUnitPerDistanceUnit?: number;
+    MaxVolumeQualifyingForDiscount?: number;
+
     RoundTo?: number;
+    RoundUnitCostTo?: number;
 }

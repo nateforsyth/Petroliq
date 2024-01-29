@@ -258,7 +258,7 @@ namespace Petroliq_API.Controllers
 #pragma warning restore CS8602
 
                         // generate a new hashedFingerprint to use for validation of the Refresh token, to replace the existing cookie
-                        string newHashedFingerprint = BCrypt.Net.BCrypt.HashPassword(refreshTokenCookie);
+                        string newHashedFingerprint = BCrypt.Net.BCrypt.HashPassword(user.RefreshToken);
 
                         string tokenString = new JwtSecurityTokenHandler().WriteToken(newToken);
                         Response.Cookies.Delete("X-Access-Token");

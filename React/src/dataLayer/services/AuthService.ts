@@ -27,21 +27,12 @@ export class AuthService {
         }
     }
 
-    public static getBrowserRefreshToken = (): string => {
-        const currentRefreshToken: string | null = localStorage.getItem("refresh");
-        if (currentRefreshToken !== null) {
-            return currentRefreshToken;
-        }
-        else {
-            return "";
-        }
-    }
+    public static refreshToken = async (principalId: string): Promise<IAuthResult> => {
 
-    public static refreshToken = async (principalId: string, currentRefreshToken: string): Promise<IAuthResult> => {
+        console.log(`refreshToken, principalId: ${principalId}`);
 
         // let jwt: string = "";
         let userId: string = "";
-        let refreshToken: string = "";
         let refreshTokenExpiry: string = "";
         let decodedJwt: IDecodedJwt;
         let authResult: IAuthResult = {};
@@ -51,8 +42,7 @@ export class AuthService {
             return await axios.post(
                 requestUrl,
                 {
-                    "PrincipalId": `${principalId}`,
-                    "RefreshTokenFingerprint": `${currentRefreshToken}`
+                    "PrincipalId": `${principalId}`
                 },
                 {
                     headers: {
@@ -64,12 +54,10 @@ export class AuthService {
                 .then((jwtResult: AxiosResponse<any, any>) => {
                     if (jwtResult !== null && jwtResult.data !== null) {
                         userId = jwtResult.data.UserId;
-                        refreshToken = jwtResult.data.RefreshToken;
                         refreshTokenExpiry = jwtResult.data.Expiration;
 
                         authResult = {
                             userId: userId,
-                            refreshToken: refreshToken,
                             jwtExpiry: refreshTokenExpiry,
                             resposeCode: 200
                         };
@@ -104,7 +92,6 @@ export class AuthService {
 
     public static login = async (email: string, password: string): Promise<IAuthResult> => {
         let userId: string = "";
-        let refreshToken: string = "";
         let tokenExpiry: string = "";
         let authResult: IAuthResult = {};
         const requestUrl: string = `${settingsJson.apiBaseUrl}/api/Auth/Login`;
@@ -126,12 +113,10 @@ export class AuthService {
                 .then((jwtResult: AxiosResponse<any, any>) => {
                     if (jwtResult !== null && jwtResult.data !== null) {
                         userId = jwtResult.data.UserId;
-                        refreshToken = jwtResult.data.RefreshToken;
                         tokenExpiry = jwtResult.data.Expiration;
 
                         authResult = {
                             userId: userId,
-                            refreshToken: refreshToken,
                             jwtExpiry: tokenExpiry,
                             resposeCode: 200
                         };
